@@ -448,6 +448,72 @@
   .swap-btn.active{ background: var(--accent); color:#0d1210; border-color:var(--accent); font-weight:600; }
   .swap-btn:hover:not(.active){ border-color: var(--ink-dim); color: var(--ink); }
 
+  /* Tab-Navigation */
+  .tab-nav{
+    display:flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+  }
+  .tab-btn{
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab-btn.active{
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .tab-btn:hover:not(.active){ color: var(--ink); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  /* Aktivitäten-Wochenraster (analog zum Kalender, aber für echte Aktivitäten) */
+  .activity-week-grid{
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .activity-day-card{
+    aspect-ratio: unset;
+    min-height: 110px;
+    padding: 10px;
+    display:flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .activity-day-weekday{
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .activity-day-date{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+  }
+  .activity-day-sport{
+    font-size: 20px;
+  }
+  .activity-day-stats{
+    font-size: 10px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+  }
+  .activity-day-empty{
+    color: var(--ink-dim);
+    font-size: 11px;
+    opacity: 0.5;
+  }
+
   @media (max-width: 560px){
     .card.wide{grid-column: span 1;}
     header{flex-direction:column; align-items:flex-start; gap:8px;}
@@ -465,6 +531,12 @@
     </div>
     <div class="date-tag" id="dateTag">–</div>
   </header>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tabBtnDashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" id="tabBtnActivities" onclick="switchTab('activities')">Aktivitäten</button>
+    <button class="tab-btn" id="tabBtnCalendar" onclick="switchTab('calendar')">Kalender</button>
+  </div>
 
   <div class="card" id="sectionGithubSetup" style="display:none; margin-bottom:24px; padding:22px;">
     <div class="card-label" style="margin-bottom:14px;">GitHub-Verbindung einrichten</div>
@@ -488,16 +560,12 @@
     </div>
   </div>
 
+  <div id="tabPanelDashboard" class="tab-panel active">
+
   <div class="dropzone" id="dropzoneDaily">
     <input type="file" id="fileDaily" accept=".json">
     <div class="dropzone-label">📊 <b>daily_latest.json</b> hier ablegen oder klicken zum Auswählen</div>
     <div class="file-status" id="statusDaily">Noch keine Datei geladen</div>
-  </div>
-
-  <div class="dropzone" id="dropzoneActivities">
-    <input type="file" id="fileActivities" accept=".json">
-    <div class="dropzone-label">🏃 <b>activities_latest.json</b> hier ablegen oder klicken zum Auswählen</div>
-    <div class="file-status" id="statusActivities">Noch keine Datei geladen</div>
   </div>
 
   <section id="sectionReadiness" style="display:none;">
@@ -542,18 +610,27 @@
     <div class="grid" id="performanceGrid"></div>
   </section>
 
-  <section id="sectionActivities" style="display:none;">
-    <div class="section-title">Letzte Aktivitäten</div>
-    <div class="card" style="padding:6px 18px;">
-      <table id="activitiesTable">
-        <thead>
-          <tr><th>Datum</th><th>Sportart</th><th>Distanz</th><th>Dauer</th><th>⌀ HF</th></tr>
-        </thead>
-        <tbody id="activitiesBody"></tbody>
-      </table>
-    </div>
-  </section>
+  </div>
 
+  <div id="tabPanelActivities" class="tab-panel">
+    <div class="dropzone" id="dropzoneActivities">
+      <input type="file" id="fileActivities" accept=".json">
+      <div class="dropzone-label">🏃 <b>activities_latest.json</b> hier ablegen oder klicken zum Auswählen</div>
+      <div class="file-status" id="statusActivities">Noch keine Datei geladen</div>
+    </div>
+
+    <section id="sectionActivities" style="display:none;">
+      <div class="section-title">Letzte Aktivitäten</div>
+      <div class="calendar-nav">
+        <button class="toggle-btn" onclick="changeActivityWeek(-1)">‹ Vorherige Woche</button>
+        <div id="activityWeekLabel" class="calendar-month-label">–</div>
+        <button class="toggle-btn" onclick="changeActivityWeek(1)">Nächste Woche ›</button>
+      </div>
+      <div class="calendar-grid activity-week-grid" id="activityWeekGrid"></div>
+    </section>
+  </div>
+
+  <div id="tabPanelCalendar" class="tab-panel">
   <section id="sectionCalendar">
     <div class="section-title">Trainingsplan-Kalender</div>
 
@@ -573,6 +650,8 @@
       <div class="calendar-legend" id="calendarLegend"></div>
     </div>
   </section>
+  </div>
+
 
   <div class="modal-overlay" id="weekModalOverlay" onclick="closeWeekModalOnOverlay(event)">
     <div class="modal-box" id="weekModalBox"></div>
@@ -1156,36 +1235,148 @@ function renderPerformance(data){
   }
 }
 
+// Icons für gängige Garmin-Sportarten-Schlüssel, mit lesbarem Fallback für unbekannte
+const WEEKDAY_LABELS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const ACTIVITY_SPORT_ICONS = {
+  running: '🏃', treadmill_running: '🏃', trail_running: '🏃',
+  cycling: '🚴', road_biking: '🚴', mountain_biking: '🚵', gravel_cycling: '🚴',
+  lap_swimming: '🏊', open_water_swimming: '🏊',
+  soccer: '⚽', football: '⚽',
+  strength_training: '💪', fitness_equipment: '💪',
+  hiking: '🥾', walking: '🚶',
+  other: '🏅',
+};
+function sportIconFor(typeKey){
+  if(!typeKey) return '🏅';
+  return ACTIVITY_SPORT_ICONS[typeKey] || '🏅';
+}
+function sportLabelFor(typeKey){
+  if(!typeKey) return 'Aktivität';
+  return typeKey.split('_').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+
+let allActivitiesData = [];
+let activityWeekViewDate = new Date();
+
 function renderActivities(activities){
   const section = document.getElementById('sectionActivities');
-  const tbody = document.getElementById('activitiesBody');
-  tbody.innerHTML = '';
 
   if(!activities || isErrorField(activities) || !Array.isArray(activities) || activities.length===0){
     section.style.display = 'none';
     return;
   }
   section.style.display = 'block';
+  allActivitiesData = activities;
+  activityWeekViewDate = new Date(); // beim ersten Laden: aktuelle Woche zeigen
+  renderActivityWeek();
+}
 
-  activities.slice(0,15).forEach(act=>{
+function changeActivityWeek(deltaWeeks){
+  activityWeekViewDate.setDate(activityWeekViewDate.getDate() + deltaWeeks*7);
+  renderActivityWeek();
+}
+
+// Montag der Woche zu einem gegebenen Datum
+function getMondayOfWeek(date){
+  const d = new Date(date);
+  const day = (d.getDay() + 6) % 7; // Montag=0
+  d.setDate(d.getDate() - day);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function renderActivityWeek(){
+  const monday = getMondayOfWeek(activityWeekViewDate);
+  const sunday = new Date(monday); sunday.setDate(sunday.getDate()+6);
+
+  const fmtShort = d => d.getDate()+'.'+(d.getMonth()+1)+'.';
+  document.getElementById('activityWeekLabel').textContent = fmtShort(monday)+' – '+fmtShort(sunday);
+
+  // Aktivitäten dieser Woche nach Tag gruppieren
+  const byDate = {};
+  allActivitiesData.forEach(act => {
     const startLocal = safe(act,'startTimeLocal','') || '';
-    const date = startLocal.split(' ')[0] || '–';
-    const sport = safe(act, 'activityType.typeKey', '–');
-    const distanceM = safe(act, 'distance', 0);
-    const distanceKm = distanceM ? (distanceM/1000).toFixed(2)+' km' : '–';
-    const durationSec = safe(act, 'duration');
-    const avgHr = safe(act, 'averageHR');
+    const dateStr = startLocal.split(' ')[0];
+    if(!dateStr) return;
+    if(!byDate[dateStr]) byDate[dateStr] = [];
+    byDate[dateStr].push(act);
+  });
 
-    const tr = document.createElement('tr');
-    tr.innerHTML =
-      '<td>'+date+'</td>'+
-      '<td><span class="sport-tag">'+sport+'</span></td>'+
-      '<td>'+distanceKm+'</td>'+
-      '<td>'+fmtSeconds(durationSec)+'</td>'+
-      '<td>'+(avgHr ? Math.round(avgHr)+' bpm' : '–')+'</td>';
-    tbody.appendChild(tr);
+  const grid = document.getElementById('activityWeekGrid');
+  grid.innerHTML = '';
+  WEEKDAY_LABELS.forEach(lbl => {
+    const el = document.createElement('div');
+    el.className = 'calendar-weekday-label';
+    el.textContent = lbl;
+    grid.appendChild(el);
+  });
+
+  for(let i=0; i<7; i++){
+    const date = new Date(monday); date.setDate(date.getDate()+i);
+    const dateStr = date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+    const dayActivities = byDate[dateStr] || [];
+
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day activity-day-card';
+
+    if(dayActivities.length === 0){
+      cell.innerHTML =
+        '<div class="activity-day-weekday">'+WEEKDAY_LABELS[i]+'</div>'+
+        '<div class="activity-day-date">'+date.getDate()+'.'+(date.getMonth()+1)+'.</div>'+
+        '<div class="activity-day-empty">Keine Aktivität</div>';
+    } else {
+      const main = dayActivities[0];
+      const sport = safe(main, 'activityType.typeKey');
+      const distanceKm = safe(main,'distance') ? (safe(main,'distance')/1000).toFixed(1)+' km' : '';
+      const duration = fmtSeconds(safe(main,'duration'));
+      const avgHr = safe(main,'averageHR');
+
+      cell.innerHTML =
+        '<div class="activity-day-weekday">'+WEEKDAY_LABELS[i]+'</div>'+
+        '<div class="activity-day-date">'+date.getDate()+'.'+(date.getMonth()+1)+'.</div>'+
+        '<div class="activity-day-sport">'+sportIconFor(sport)+(dayActivities.length>1 ? ' <span style="font-size:10px; color:var(--ink-dim);">+'+(dayActivities.length-1)+'</span>' : '')+'</div>'+
+        '<div class="activity-day-stats">'+[distanceKm, duration, avgHr?Math.round(avgHr)+' bpm':''].filter(Boolean).join(' · ')+'</div>';
+      cell.onclick = () => openActivityDayModal(dateStr, dayActivities);
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function openActivityDayModal(dateStr, dayActivities){
+  const box = document.getElementById('weekModalBox');
+  let html = '<button class="modal-close-btn" onclick="closeWeekModal()">✕</button>';
+  html += '<div class="card-label">Aktivitäten am '+dateStr+'</div>';
+  html += '<h2 style="margin:6px 0 16px; font-size:20px;">'+dayActivities.length+' '+(dayActivities.length===1?'Aktivität':'Aktivitäten')+'</h2>';
+
+  dayActivities.forEach(act => {
+    const sport = safe(act, 'activityType.typeKey');
+    const distanceKm = safe(act,'distance') ? (safe(act,'distance')/1000).toFixed(2)+' km' : '–';
+    const duration = fmtSeconds(safe(act,'duration'));
+    const avgHr = safe(act,'averageHR');
+    const startLocal = safe(act,'startTimeLocal','') || '';
+    const timeOfDay = startLocal.split(' ')[1] || '';
+
+    html += '<div class="week-day-row">';
+    html += '<div class="week-day-icon">'+sportIconFor(sport)+'</div>';
+    html += '<div class="week-day-meta">'+timeOfDay.slice(0,5)+'</div>';
+    html += '<div class="week-day-body">';
+    html += '<div class="week-day-title">'+sportLabelFor(sport)+'</div>';
+    html += '<div class="week-day-detail">'+[distanceKm, duration, avgHr?Math.round(avgHr)+' bpm ⌀':''].filter(Boolean).join(' · ')+'</div>';
+    html += '</div></div>';
+  });
+
+  box.innerHTML = html;
+  document.getElementById('weekModalOverlay').classList.add('active');
+}
+
+// ---------- Tab-Navigation ----------
+function switchTab(tabName){
+  ['dashboard','activities','calendar'].forEach(name => {
+    document.getElementById('tabPanel'+capitalize(name)).classList.toggle('active', name===tabName);
+    document.getElementById('tabBtn'+capitalize(name)).classList.toggle('active', name===tabName);
   });
 }
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 
 // ---------- Trainingsplan-Kalender (JSX-Parser + Anzeige) ----------
 
@@ -1193,6 +1384,7 @@ const TRAININGSPLAN_STORAGE_KEY = 'garmin_dashboard_trainingsplan';
 let trainingsplanData = null; // { phases, weeks, typeStyles }
 let calendarViewDate = new Date(); // aktuell angezeigter Monat
 const dayOverrides = {}; // { 'YYYY-MM-DD': { type, title, detail } } - manuelle Tages-Anpassungen
+
 
 // Extrahiert einen "const NAME = <Ausdruck>;" Block per Klammer-Balance-Zählung,
 // da JSX-Werte mehrzeilige, verschachtelte Arrays/Objekte sind.
@@ -1323,7 +1515,6 @@ function tryRestoreTrainingsplan(){
 }
 
 const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-const WEEKDAY_LABELS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
 
 function changeCalendarMonth(delta){
   calendarViewDate.setMonth(calendarViewDate.getMonth() + delta);
