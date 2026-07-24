@@ -1,0 +1,3778 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Trainings-Dashboard</title>
+<style>
+  :root{
+    --bg: #0d1210;
+    --panel: #141b18;
+    --panel-border: #223028;
+    --ink: #e8ece9;
+    --ink-dim: #8ba095;
+    --line: #26332c;
+
+    --zone1: #4d7c8a;
+    --zone2: #4d9a5f;
+    --zone3: #c9a227;
+    --zone4: #c9662c;
+    --zone5: #b83b3b;
+
+    --accent: #7fe08c;
+    --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    --sans: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height:100vh;
+    padding: 32px 20px 80px;
+  }
+
+  .wrap{max-width: 920px; margin: 0 auto;}
+
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 18px;
+  }
+  .brand{
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  h1{
+    font-size: 28px;
+    margin: 4px 0 0;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .date-tag{
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--accent);
+    text-align:right;
+  }
+
+  .settings-gear-btn{
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+    flex-shrink: 0;
+  }
+  .settings-gear-btn:hover{
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .dropzone{
+    border: 1px dashed var(--panel-border);
+    border-radius: 10px;
+    padding: 28px 20px;
+    text-align:center;
+    cursor:pointer;
+    transition: border-color .15s, background .15s;
+    margin-bottom: 24px;
+    background: var(--panel);
+  }
+  .dropzone:hover, .dropzone.drag{
+    border-color: var(--accent);
+    background: #16201a;
+  }
+  .dropzone input{display:none;}
+  .dropzone-label{
+    font-size: 14px;
+    color: var(--ink-dim);
+  }
+  .dropzone-label b{color:var(--ink);}
+
+  /* Kompakte Dropzone-Variante für den Upload-Bereich am Ende der Seite */
+  .compact-upload-row{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .dropzone.compact{
+    padding: 14px 12px;
+    margin-bottom: 0;
+  }
+  .dropzone.compact .dropzone-label{
+    font-size: 12px;
+  }
+  .dropzone.compact .file-status{
+    font-size: 11px;
+    margin-top: 6px;
+  }
+  @media (max-width: 560px){
+    .compact-upload-row{ grid-template-columns: 1fr; }
+  }
+
+  .file-status{
+    font-family: var(--mono);
+    font-size: 12px;
+    margin-top: 10px;
+    color: var(--ink-dim);
+  }
+  .file-status.ok{color: var(--accent);}
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 18px;
+  }
+  .card-label{
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 10px;
+  }
+  .card-value{
+    font-family: var(--mono);
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .card-unit{
+    font-size: 14px;
+    color: var(--ink-dim);
+    font-weight: 400;
+    margin-left: 4px;
+  }
+  .card-sub{
+    font-size: 12px;
+    color: var(--ink-dim);
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  .card.wide{grid-column: span 2;}
+
+  .tag{
+    display:inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    margin-top: 8px;
+  }
+  .tag.poor{background: rgba(184,59,59,.18); color:#e08787;}
+  .tag.fair{background: rgba(201,162,39,.18); color:#e0c877;}
+  .tag.good{background: rgba(77,154,95,.18); color:#8fd49f;}
+  .tag.excellent{background: rgba(127,224,140,.18); color:#7fe08c;}
+  .tag.na{background: rgba(139,160,149,.14); color: var(--ink-dim);}
+
+  section{margin-top: 32px;}
+  .section-title{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 12px;
+    display:flex;
+    align-items:center;
+    gap: 10px;
+  }
+  .section-title::after{
+    content:'';
+    flex:1;
+    height:1px;
+    background: var(--line);
+  }
+
+  .sleep-bar{
+    display:flex;
+    height: 34px;
+    border-radius: 6px;
+    overflow:hidden;
+    margin: 14px 0 8px;
+    background: #0a0f0c;
+  }
+  .sleep-seg{height:100%;}
+  .sleep-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 14px;
+    font-size: 12px;
+    color: var(--ink-dim);
+  }
+  .sleep-legend span{display:flex; align-items:center; gap:6px;}
+  .dot{width:8px; height:8px; border-radius:2px; display:inline-block;}
+
+  table{width:100%; border-collapse:collapse; font-size: 13px;}
+  th{
+    text-align:left;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform:uppercase;
+    color: var(--ink-dim);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  td{
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  tr:last-child td{border-bottom:none;}
+  .sport-tag{
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #1a2420;
+    color: var(--ink-dim);
+  }
+
+  footer{
+    margin-top: 40px;
+    text-align:center;
+    font-size: 11px;
+    color: var(--ink-dim);
+    font-family: var(--mono);
+  }
+
+  /* Readiness card */
+  .readiness-card{padding: 22px;}
+  .readiness-top{
+    display:flex;
+    align-items:center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .readiness-score-wrap{
+    display:flex;
+    align-items:baseline;
+    gap: 4px;
+  }
+  .readiness-score{
+    font-family: var(--mono);
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .readiness-scale{
+    font-family: var(--mono);
+    font-size: 16px;
+    color: var(--ink-dim);
+  }
+  .readiness-detail{flex:1; min-width: 180px;}
+  .readiness-label{
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .readiness-formula{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .readiness-recommendation{
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #0f1613;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-left: 3px solid var(--accent);
+  }
+  .readiness-toggle-row{
+    display:flex;
+    gap: 10px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .toggle-btn{
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 7px;
+    border: 1px solid var(--panel-border);
+    background: transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .toggle-btn.active{
+    background: var(--accent);
+    color: #0d1210;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .toggle-btn:not(.active):hover{
+    border-color: var(--ink-dim);
+    color: var(--ink);
+  }
+  .readiness-breakdown{
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 10px;
+    font-size: 11px;
+    color: var(--ink-dim);
+    font-family: var(--mono);
+  }
+  .breakdown-item b{display:block; color: var(--ink); font-size: 14px; margin-bottom: 2px;}
+  .breakdown-item.missing{opacity: 0.4;}
+
+  /* Kalender */
+  .calendar-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 16px;
+  }
+  .calendar-month-label{
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .calendar-grid{
+    display:grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .calendar-weekday-label{
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    text-align:center;
+    padding: 4px 0;
+    text-transform: uppercase;
+  }
+  .calendar-day{
+    aspect-ratio: 1;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+    background: var(--panel);
+    padding: 6px;
+    display:flex;
+    flex-direction:column;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: border-color .15s, transform .1s;
+    min-height: 62px;
+    position: relative;
+  }
+  .calendar-day:hover{
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .calendar-day.empty{
+    background: transparent;
+    border: none;
+    cursor: default;
+  }
+  .calendar-day.empty:hover{ transform: none; }
+  .calendar-day-number{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .calendar-day-icon{
+    font-size: 22px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    flex: 1;
+    line-height: 1;
+  }
+  .calendar-day-icon .icon-extra-count{
+    font-size: 10px;
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    align-self: flex-end;
+  }
+  .calendar-day-type{
+    font-size: 9px;
+    color: var(--ink-dim);
+    text-align:center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .calendar-day.blocked{
+    border-style: dashed;
+  }
+  .calendar-day.missed-day{
+    position: relative;
+    opacity: 0.55;
+  }
+  .calendar-day.missed-day::before{
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 8px;
+    background: repeating-linear-gradient(
+      135deg,
+      rgba(139,160,149,0.16),
+      rgba(139,160,149,0.16) 4px,
+      transparent 4px,
+      transparent 9px
+    );
+    pointer-events: none;
+  }
+  .calendar-day.near-future{
+    box-shadow: inset 0 0 0 1px rgba(127,224,140,0.35);
+  }
+  .calendar-day.near-future::after{
+    content:'';
+    position:absolute;
+    top:4px; right:4px;
+    width:6px; height:6px;
+    border-radius:50%;
+    background: var(--accent);
+  }
+  .upcoming-suggestion-banner{
+    background: #1a2015;
+    border: 1px solid #4d5a2c;
+    border-radius: 10px;
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .plan-analysis-card{
+    margin-bottom: 20px;
+    padding: 18px 20px;
+  }
+  .calendar-legend{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 18px;
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .calendar-legend span{ display:flex; align-items:center; gap: 5px; }
+
+  /* Wochendetail-Modal */
+  .modal-overlay{
+    display:none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .modal-overlay.active{ display:flex; }
+  .modal-box{
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 12px;
+    max-width: 640px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 24px;
+  }
+  .modal-close-btn{
+    float: right;
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .modal-close-btn:hover{ color: var(--ink); }
+  .week-day-row{
+    display:flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: flex-start;
+  }
+  .week-day-row:last-child{ border-bottom: none; }
+  .week-day-icon{ font-size: 22px; width: 32px; text-align:center; flex-shrink:0; }
+  .week-day-meta{
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    width: 60px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+  .week-day-body{ flex: 1; }
+  .week-day-title{ font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .week-day-detail{ font-size: 12px; color: var(--ink-dim); line-height: 1.5; }
+  .week-swap-row{ margin-top: 8px; display:flex; gap:8px; }
+  .swap-btn{
+    font-family: var(--sans);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--panel-border);
+    background: transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+  }
+  .swap-btn.active{ background: var(--accent); color:#0d1210; border-color:var(--accent); font-weight:600; }
+  .swap-btn:hover:not(.active){ border-color: var(--ink-dim); color: var(--ink); }
+
+  /* Aktivitäts-Verlaufsgraphen */
+  .charts-grid{
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .chart-card{
+    background: #0f1613;
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .chart-header{
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .chart-title{
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .chart-avg{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .chart-svg{
+    width: 100%;
+    height: 60px;
+    display: block;
+  }
+  .chart-minmax{
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    margin-top: 4px;
+  }
+
+  /* Aktivitätskarte */
+  .activity-map{
+    width: 100%;
+    height: 280px;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+    background: #0f1613;
+  }
+  .leaflet-container{ background: #0f1613 !important; }
+
+  /* Interaktiver Multi-Chart */
+  .metric-checkbox-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-bottom: 14px;
+  }
+  .history-controls{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .history-range-switch{
+    display: flex;
+    gap: 6px;
+  }
+  .history-nav{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  /* Metrik-Detail-Modal (Tag/Woche/Monat/Jahr für einzelne Kennzahl) */
+  .clickable-metric{ cursor: pointer; transition: border-color .15s; }
+  .clickable-metric:hover{ border-color: var(--accent); }
+  .metric-chart-card{
+    background: #0f1613;
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .metric-chart-svg{
+    width: 100%;
+    height: 280px;
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .metric-chart-hover-info{
+    margin-top: 12px;
+    font-size: 13px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+    min-height: 20px;
+  }
+  .metric-chart-hover-info b{ color: var(--ink); }
+  .metric-axis-label{
+    font-family: var(--mono);
+    font-size: 9px;
+    fill: var(--ink-dim);
+  }
+  .metric-axis-line{
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .metric-checkbox{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    user-select: none;
+  }
+  .metric-checkbox input{ cursor: pointer; }
+  .metric-swatch{
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    display: inline-block;
+  }
+  .multi-chart-card{
+    background: #0f1613;
+    border: 1px solid var(--panel-border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .multi-chart-svg{
+    width: 100%;
+    height: 220px;
+    display: block;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .multi-chart-legend{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .multi-chart-legend span{ display:flex; align-items:center; gap:5px; }
+  .multi-chart-selection-info{
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-dim);
+    line-height: 1.6;
+  }
+  .multi-chart-selection-info b{ color: var(--ink); }
+
+  /* Splits: Rundentyp-Filter und Zusammenfassungszeile */
+  .split-filter-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .splits-summary-row{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 12px 14px;
+    background: #0f1613;
+    border-radius: 8px;
+    border: 1px solid var(--panel-border);
+    margin-bottom: 20px;
+  }
+  .splits-summary-row > div{
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .splits-summary-label{
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .splits-summary-value{
+    font-family: var(--mono);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* Tab-Navigation */
+  .tab-nav{
+    display:flex;
+    gap: 6px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2px;
+  }
+  .tab-btn{
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 18px;
+    background: none;
+    border: none;
+    color: var(--ink-dim);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab-btn.active{
+    color: var(--ink);
+    border-bottom-color: var(--accent);
+    font-weight: 600;
+  }
+  .tab-btn:hover:not(.active){ color: var(--ink); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  /* Aktivitäten-Wochenraster (analog zum Kalender, aber für echte Aktivitäten) */
+  .activity-week-grid{
+    grid-template-columns: repeat(7, 1fr);
+  }
+  .activity-day-card{
+    aspect-ratio: unset;
+    min-height: 110px;
+    padding: 10px;
+    display:flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .activity-day-weekday{
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  .activity-day-date{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink);
+  }
+  .activity-day-sport{
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    flex: 1;
+  }
+  .activity-day-stats{
+    font-size: 10px;
+    color: var(--ink-dim);
+    line-height: 1.4;
+  }
+  .activity-day-empty{
+    color: var(--ink-dim);
+    font-size: 11px;
+    opacity: 0.5;
+  }
+
+  /* Aktivitäten: View-Umschalter (Tag/Woche/Monat) */
+  .activity-view-switch{
+    display:flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .calendar-day.is-today{
+    border-color: var(--accent);
+    border-width: 2px;
+    box-shadow: 0 0 0 1px rgba(127,224,140,0.25);
+  }
+  .calendar-day.is-today .calendar-day-number,
+  .calendar-day.is-today .activity-day-weekday,
+  .calendar-day.is-today .activity-day-date{
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .calendar-day-actual{
+    font-size: 13px;
+    text-align: center;
+    line-height: 1;
+    margin-top: 2px;
+  }
+  .combined-modal-section{
+    margin-bottom: 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .combined-modal-section:last-child{
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  /* Aktivitäten: Tagesansicht */
+  .activity-day-view-card{
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .activity-day-view-empty{
+    text-align:center;
+    color: var(--ink-dim);
+    font-size: 13px;
+    padding: 30px 0;
+  }
+
+  @media (max-width: 560px){
+    .card.wide{grid-column: span 1;}
+    header{flex-direction:column; align-items:flex-start; gap:8px;}
+    .date-tag{text-align:left;}
+  }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="brand">Trainings-Dashboard</div>
+      <h1>Tagesübersicht</h1>
+    </div>
+    <div style="display:flex; align-items:flex-start; gap:14px;">
+      <div style="text-align:right;">
+        <div class="date-tag" id="dateTag">–</div>
+        <div id="lastImportTag" style="font-family:var(--mono); font-size:11px; color:var(--ink-dim); margin-top:2px;"></div>
+      </div>
+      <button class="settings-gear-btn" onclick="openSettingsModal()" title="Einstellungen" aria-label="Einstellungen">⚙</button>
+    </div>
+  </header>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" id="tabBtnDashboard" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" id="tabBtnCalendar" onclick="switchTab('calendar')">Trainingsplan</button>
+  </div>
+
+  <div class="card" id="sectionGithubSetup" style="display:none; margin-bottom:24px; padding:22px;">
+    <div class="card-label" style="margin-bottom:14px;">GitHub-Verbindung einrichten</div>
+    <div style="font-size:13px; color:var(--ink-dim); margin-bottom:16px; line-height:1.5;">
+      Damit das Dashboard automatisch deine Garmin-Daten aus deinem privaten GitHub-Repository lädt,
+      brauchst du einmalig einen <b style="color:var(--ink);">Personal Access Token</b>. Der Token wird
+      nur lokal in diesem Browser gespeichert, nirgendwo sonst hochgeladen.
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px; max-width:420px;">
+      <label style="font-size:12px; color:var(--ink-dim);">GitHub-Benutzername
+        <input type="text" id="githubOwner" placeholder="z.B. colin123" style="width:100%; margin-top:4px; padding:8px 10px; background:#0f1613; border:1px solid var(--panel-border); border-radius:6px; color:var(--ink); font-family:var(--sans);">
+      </label>
+      <label style="font-size:12px; color:var(--ink-dim);">Repository-Name
+        <input type="text" id="githubRepo" placeholder="garmin-training-app" style="width:100%; margin-top:4px; padding:8px 10px; background:#0f1613; border:1px solid var(--panel-border); border-radius:6px; color:var(--ink); font-family:var(--sans);">
+      </label>
+      <label style="font-size:12px; color:var(--ink-dim);">Personal Access Token
+        <input type="password" id="githubToken" placeholder="ghp_..." style="width:100%; margin-top:4px; padding:8px 10px; background:#0f1613; border:1px solid var(--panel-border); border-radius:6px; color:var(--ink); font-family:var(--sans);">
+      </label>
+      <div id="githubSetupError" style="color:#e08787; font-size:12px;"></div>
+      <button onclick="submitGithubSetup()" class="toggle-btn active" style="margin-top:6px; align-self:flex-start;">Verbinden</button>
+    </div>
+  </div>
+
+  <div id="tabPanelDashboard" class="tab-panel active">
+
+  <div class="dropzone" id="dropzoneDaily">
+    <input type="file" id="fileDaily" accept=".json">
+    <div class="dropzone-label">📊 <b>daily_latest.json</b> hier ablegen oder klicken zum Auswählen</div>
+    <div class="file-status" id="statusDaily">Noch keine Datei geladen</div>
+  </div>
+
+  <section id="sectionReadiness" style="display:none;">
+    <div class="section-title">Trainingsbereitschaft (berechnet)</div>
+    <div class="card readiness-card">
+      <div class="readiness-top">
+        <div class="readiness-score-wrap">
+          <div class="readiness-score" id="readinessScore">–</div>
+          <div class="readiness-scale">/ 100</div>
+        </div>
+        <div class="readiness-detail">
+          <div class="readiness-label" id="readinessLabel">–</div>
+          <div class="readiness-formula" id="readinessFormula"></div>
+        </div>
+      </div>
+      <div class="readiness-recommendation" id="readinessRecommendation"></div>
+      <div class="readiness-toggle-row">
+        <button class="toggle-btn active" id="btnUseAdjusted" onclick="setPlanChoice('adjusted')">Angepasste Einheit</button>
+        <button class="toggle-btn" id="btnKeepOriginal" onclick="setPlanChoice('original')">Ursprüngliche Einheit beibehalten</button>
+      </div>
+      <div class="readiness-breakdown" id="readinessBreakdown"></div>
+    </div>
+  </section>
+
+  <section id="sectionRecovery" style="display:none;">
+    <div class="section-title">Erholung &amp; Bereitschaft</div>
+    <div class="grid" id="recoveryGrid"></div>
+  </section>
+
+  <section id="sectionSleep" style="display:none;">
+    <div class="section-title">Schlaf</div>
+    <div class="card clickable-metric" onclick="openMetricHistoryModal('sleepScore', 'Schlaf-Score')">
+      <div class="card-label">Schlafphasen</div>
+      <div class="sleep-bar" id="sleepBar"></div>
+      <div class="sleep-legend" id="sleepLegend"></div>
+      <div class="card-sub" id="sleepSummary" style="margin-top:14px;"></div>
+    </div>
+  </section>
+
+  <section id="sectionPerformance" style="display:none;">
+    <div class="section-title">Leistungskennzahlen</div>
+    <div class="grid" id="performanceGrid"></div>
+  </section>
+
+  </div>
+
+  <div id="tabPanelCalendar" class="tab-panel">
+  <section id="sectionCalendar">
+    <div class="section-title">Trainingsplan &amp; Aktivitäten</div>
+
+    <div id="planAnalysisSection" style="display:none;"></div>
+
+    <div id="calendarContent" style="display:none;">
+      <div class="calendar-nav">
+        <button class="toggle-btn" onclick="changeCalendarPeriod(-1)">‹</button>
+        <div id="calendarMonthLabel" class="calendar-month-label">–</div>
+        <button class="toggle-btn" onclick="changeCalendarPeriod(1)">›</button>
+      </div>
+      <div class="history-range-switch" style="margin-bottom:16px;">
+        <button class="toggle-btn" id="calendarViewBtnDay" onclick="setCalendarViewMode('day')">Tag</button>
+        <button class="toggle-btn" id="calendarViewBtnWeek" onclick="setCalendarViewMode('week')">Woche</button>
+        <button class="toggle-btn active" id="calendarViewBtnMonth" onclick="setCalendarViewMode('month')">Monat</button>
+      </div>
+      <div id="calendarDayView" style="display:none;"></div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div class="calendar-legend" id="calendarLegend"></div>
+    </div>
+
+    <div class="compact-upload-row">
+      <div class="dropzone compact" id="dropzoneJsx">
+        <input type="file" id="fileJsx" accept=".jsx,.js,.txt">
+        <div class="dropzone-label">📅 <b>Trainingsplan (.jsx)</b> hochladen</div>
+        <div class="file-status" id="statusJsx">Noch kein Plan geladen</div>
+      </div>
+
+      <div class="dropzone compact" id="dropzoneActivities">
+        <input type="file" id="fileActivities" accept=".json">
+        <div class="dropzone-label">🏃 <b>activities_latest.json</b> hochladen</div>
+        <div class="file-status" id="statusActivities">Noch keine Datei geladen</div>
+      </div>
+    </div>
+  </section>
+  </div>
+
+  <div class="modal-overlay" id="settingsModalOverlay" onclick="closeSettingsModalOnOverlay(event)">
+    <div class="modal-box" style="max-width:440px;">
+      <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
+      <div class="card-label" style="margin-bottom:16px;">Einstellungen</div>
+
+      <div class="card" style="padding:20px; margin-bottom:14px;">
+        <div class="card-label" style="margin-bottom:10px;">Zeitzone</div>
+        <div style="font-size:12px; color:var(--ink-dim); margin-bottom:12px; line-height:1.5;">
+          Betrifft die Anzeige von Datum und Uhrzeit im Dashboard (z.B. "Letzter Import"),
+          nicht die Trainingsdaten selbst.
+        </div>
+        <select id="timezoneSelect" onchange="setUserTimezone(this.value)"
+          style="width:100%; padding:9px 10px; background:#0f1613; border:1px solid var(--panel-border); border-radius:6px; color:var(--ink); font-family:var(--sans); font-size:13px;">
+        </select>
+      </div>
+
+      <div class="card" style="padding:20px;">
+        <div class="card-label" style="margin-bottom:10px;">GitHub-Verbindung</div>
+        <div style="font-size:12px; color:var(--ink-dim); margin-bottom:12px; line-height:1.5;">
+          Aktuell verbunden mit: <span id="settingsGithubRepo" style="color:var(--ink);">–</span>
+        </div>
+        <button class="toggle-btn" onclick="resetGithubSetup()">Verbindung zurücksetzen</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal-overlay" id="weekModalOverlay" onclick="closeWeekModalOnOverlay(event)">
+    <div class="modal-box" id="weekModalBox"></div>
+  </div>
+
+  <div class="modal-overlay" id="metricModalOverlay" onclick="closeMetricModalOnOverlay(event)">
+    <div class="modal-box" style="max-width:720px;">
+      <button class="modal-close-btn" onclick="closeMetricModal()">✕</button>
+      <div class="card-label" id="metricModalTitle" style="margin-bottom:14px;">–</div>
+
+      <div class="history-controls">
+        <div class="history-range-switch">
+          <button class="toggle-btn active" id="metricRangeBtnDay" onclick="setMetricRange('day')">Tag</button>
+          <button class="toggle-btn" id="metricRangeBtnWeek" onclick="setMetricRange('week')">Woche</button>
+          <button class="toggle-btn" id="metricRangeBtnMonth" onclick="setMetricRange('month')">Monat</button>
+          <button class="toggle-btn" id="metricRangeBtnYear" onclick="setMetricRange('year')">Jahr</button>
+        </div>
+        <div class="history-nav">
+          <button class="toggle-btn" onclick="changeMetricPeriod(-1)">‹</button>
+          <div id="metricPeriodLabel" class="calendar-month-label">–</div>
+          <button class="toggle-btn" onclick="changeMetricPeriod(1)">›</button>
+        </div>
+      </div>
+      <div id="metricModalStatus" style="font-size:12px; color:var(--ink-dim); margin-bottom:12px;"></div>
+
+      <div class="metric-chart-card">
+        <svg viewBox="0 0 700 280" class="metric-chart-svg" id="metricChartSvg" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="metric-chart-hover-info" id="metricHoverInfo">Über den Graphen fahren, um genaue Werte zu sehen</div>
+    </div>
+  </div>
+
+  <footer>Alle Daten bleiben lokal in deinem Browser · nichts wird hochgeladen</footer>
+</div>
+
+<script>
+function fmtSeconds(sec){
+  if(sec==null) return '–';
+  const h = Math.floor(sec/3600);
+  const m = Math.round((sec%3600)/60);
+  if(h>0) return h + ' Std ' + m + ' Min';
+  return m + ' Min';
+}
+function fmtHMS(sec){
+  if(sec==null) return '–';
+  const h = Math.floor(sec/3600);
+  const m = Math.floor((sec%3600)/60);
+  const s = Math.round(sec%60);
+  if(h>0) return h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  return m+':'+String(s).padStart(2,'0');
+}
+function qualifierTag(q){
+  if(!q) return '<span class="tag na">k. A.</span>';
+  const map = {POOR:'poor', FAIR:'fair', GOOD:'good', EXCELLENT:'excellent'};
+  const cls = map[q.toUpperCase()] || 'na';
+  const labels = {POOR:'Schlecht', FAIR:'Mittel', GOOD:'Gut', EXCELLENT:'Exzellent'};
+  const label = labels[q.toUpperCase()] || q;
+  return '<span class="tag '+cls+'">'+label+'</span>';
+}
+function safe(obj, path, fallback){
+  if(fallback===undefined) fallback=null;
+  try{
+    const result = path.split('.').reduce((o,k)=> (o==null? undefined : o[k]), obj);
+    return result===undefined ? fallback : result;
+  }catch(e){ return fallback; }
+}
+function isErrorField(obj){
+  return obj && typeof obj === 'object' && 'error' in obj && Object.keys(obj).length <= 2;
+}
+
+// Garmin verschachtelt manche Werte unter einer Geräte-ID, die wir nicht im Voraus
+// kennen (z.B. "3475619112"). Diese Funktion nimmt einfach das erste Gerät im Objekt.
+function findFirstDeviceValue(data, path, field){
+  const deviceMap = safe(data, path);
+  if(!deviceMap || typeof deviceMap !== 'object') return null;
+  const firstKey = Object.keys(deviceMap)[0];
+  if(!firstKey) return null;
+  return safe(deviceMap[firstKey], field);
+}
+
+// Macht aus Garmins SCREAMING_SNAKE_CASE-Phrasen ("MAINTAINING_3", "ON_TARGET")
+// echten deutschen Text nach der offiziellen Garmin Connect Terminologie.
+const GARMIN_TRANSLATIONS = {
+  // Trainingszustand (trainingStatusFeedbackPhrase, Zahl am Ende meist Variante/Version)
+  'PEAKING': 'Höchstform',
+  'PRODUCTIVE': 'Formaufbau',
+  'MAINTAINING': 'Formerhalt',
+  'STRAINED': 'Ermüdet',
+  'UNPRODUCTIVE': 'Unproduktiv',
+  'OVERREACHING': 'Überbelastung',
+  'RECOVERY': 'Erholung',
+  'DETRAINING': 'Formverlust',
+  'NO_STATUS': 'Kein Zustand',
+  'PAUSED': 'Unterbrochen',
+
+  // Belastungsfokus / Trainingsbalance (trainingBalanceFeedbackPhrase)
+  'LOW_AEROBIC_AND_ANAEROBIC': 'Unter Zielen',
+  'LOW_AEROBIC': 'Leicht aerob zu gering',
+  'LOW_HIGH_AEROBIC': 'Hoch aerob zu gering',
+  'LOW_ANAEROBIC': 'Anaerob zu gering',
+  'ON_TARGET': 'Ausbalanciert',
+  'HIGH_AEROBIC': 'Leicht aerober Fokus',
+  'HIGH_HIGH_AEROBIC': 'Hoch aerober Fokus',
+  'HIGH_ANAEROBIC': 'Anaerober Fokus',
+  'HIGH_AEROBIC_AND_ANAEROBIC': 'Über Zielen',
+
+  // ACWR-Status (akutes/chronisches Belastungsverhältnis)
+  'OPTIMAL': 'Optimal',
+  'LOW': 'Niedrig',
+  'HIGH': 'Hoch',
+  'VERY_HIGH': 'Sehr hoch',
+
+  // HRV-Status
+  'BALANCED': 'Ausgeglichen',
+  'UNBALANCED': 'Unausgeglichen',
+};
+
+// Ausführliche offizielle Garmin-Erklärungen zum Trainingszustand, als Untertext
+// nutzbar, damit nicht nur ein Wort, sondern der Kontext sichtbar ist.
+const TRAINING_STATUS_DESCRIPTIONS = {
+  'PEAKING': 'Du bist in idealer Wettkampfform. Deine Fitness verbessert sich, obwohl sich die Belastung in letzter Zeit reduziert hat.',
+  'PRODUCTIVE': 'Aufgrund eines effektiven Trainings nimmt deine Fitness im Allgemeinen zu.',
+  'MAINTAINING': 'Dein Training ist anstrengend genug, damit du deinen aktuellen Fitnesslevel beibehalten kannst - klare Verbesserung ist aber nicht erkennbar.',
+  'STRAINED': 'Deine Leistungsfähigkeit ist derzeit eingeschränkt, möglicherweise durch unangemessene Erholung. Etwas lockerer angehen, bis der Körper sich erholt hat.',
+  'UNPRODUCTIVE': 'Deine Fitness nimmt offenbar ab, nicht zwingend wegen Übertraining - evtl. Ernährung, Stress oder Schlafqualität prüfen.',
+  'OVERREACHING': 'Deine aktuelle Trainingsbelastung ist deutlich höher als normal, dein Körper hat Probleme mitzuhalten.',
+  'RECOVERY': 'Deine Aktivitäten sind weniger anspruchsvoll als normal, dein Fitnesslevel bleibt gleich oder nimmt leicht ab.',
+  'DETRAINING': 'Dein Fitnesslevel nimmt ab, da regelmäßige anspruchsvolle Aktivitäten für längere Zeit unterbrochen wurden.',
+  'NO_STATUS': 'Das Gerät hat nicht genügend Informationen, um deine Situation auszuwerten.',
+  'PAUSED': 'Du hast den Trainingszustand in den Geräteeinstellungen unterbrochen.',
+};
+
+const TRAINING_BALANCE_DESCRIPTIONS = {
+  'LOW_AEROBIC_AND_ANAEROBIC': 'Die 4-Wochen-Trainingsbelastung liegt in allen Intensitätskategorien unter der optimalen Belastung.',
+  'LOW_AEROBIC': 'Mehr Aktivitäten mit leichter aerober Beanspruchung würden helfen, dich zu erholen und auszugleichen.',
+  'LOW_HIGH_AEROBIC': 'Mehr hoch aerobe Aktivitäten würden langfristig Laktatschwelle und VO2max verbessern.',
+  'LOW_ANAEROBIC': 'Ein paar intensivere, anaerobe Einheiten würden Geschwindigkeit und anaeroben Bereich optimieren.',
+  'ON_TARGET': 'Die Trainingsbelastung ist ausgewogen und liefert insgesamt Nutzen für die Fitness.',
+  'HIGH_AEROBIC': 'Die Belastung besteht großteils aus leicht aeroben Aktivitäten - solide Grundlage für intensiveres Training.',
+  'HIGH_HIGH_AEROBIC': 'Die Belastung besteht großteils aus hoch aeroben Aktivitäten - verbessert Laktatschwelle, VO2max und Ausdauer.',
+  'HIGH_ANAEROBIC': 'Die Belastung besteht großteils aus intensiven Aktivitäten - zum Ausgleich auch leicht aerobe Einheiten einplanen.',
+  'HIGH_AEROBIC_AND_ANAEROBIC': 'Die 4-Wochen-Trainingsbelastung liegt über der optimalen Belastung.',
+};
+
+// Macht aus Garmins SCREAMING_SNAKE_CASE-Phrasen ("MAINTAINING_3", "ON_TARGET")
+// echten deutschen Text, per Übersetzungstabelle statt Rohformatierung.
+function humanizeStatusPhrase(phrase){
+  if(!phrase) return '';
+  const raw = phrase.toString();
+  // Zahl/Variante am Ende abtrennen (z.B. "MAINTAINING_3" -> "MAINTAINING")
+  const base = raw.replace(/_\d+$/, '');
+  if(GARMIN_TRANSLATIONS[base]) return GARMIN_TRANSLATIONS[base];
+  if(GARMIN_TRANSLATIONS[raw]) return GARMIN_TRANSLATIONS[raw];
+  // Fallback: falls ein Begriff nicht in der Tabelle steht, wenigstens lesbar machen
+  return base.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+}
+
+// Liefert die ausführliche offizielle Garmin-Erklärung zu Trainingszustand/Belastungsfokus,
+// falls vorhanden - sonst leer (kein Rate-Text).
+function getStatusDescription(phrase, descriptionMap){
+  if(!phrase) return '';
+  const base = phrase.toString().replace(/_\d+$/, '');
+  return descriptionMap[base] || descriptionMap[phrase.toString()] || '';
+}
+
+function setupDropzone(zoneId, inputId, statusId, onLoad){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  const status = document.getElementById(statusId);
+
+  zone.addEventListener('click', ()=> input.click());
+  zone.addEventListener('dragover', e=>{e.preventDefault(); zone.classList.add('drag');});
+  zone.addEventListener('dragleave', ()=> zone.classList.remove('drag'));
+  zone.addEventListener('drop', e=>{
+    e.preventDefault();
+    zone.classList.remove('drag');
+    if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', e=>{
+    if(e.target.files.length) handleFile(e.target.files[0]);
+  });
+
+  function handleFile(file){
+    const reader = new FileReader();
+    reader.onload = evt=>{
+      try{
+        const data = JSON.parse(evt.target.result);
+        status.textContent = '✓ ' + file.name + ' geladen';
+        status.classList.add('ok');
+        onLoad(data);
+      }catch(err){
+        status.textContent = 'Fehler: Datei ist kein gültiges JSON';
+        status.classList.remove('ok');
+      }
+    };
+    reader.readAsText(file);
+  }
+}
+
+// ---------- Trainingsbereitschaft (TB) Berechnung ----------
+let planChoice = 'adjusted'; // 'adjusted' oder 'original'
+
+function weightedReweight(weights, values){
+  const availableKeys = Object.keys(weights).filter(k => values[k] != null);
+  const totalAvailableWeight = availableKeys.reduce((sum,k)=> sum+weights[k], 0);
+  if(totalAvailableWeight===0) return null;
+  let sum = 0;
+  availableKeys.forEach(k=>{
+    const adjustedWeight = weights[k] / totalAvailableWeight;
+    sum += adjustedWeight * values[k];
+  });
+  return sum;
+}
+
+// Merkt sich den zuletzt berechneten Trainingsbereitschafts-Wert global, damit
+// der Kalender (vorausschauender Einheiten-Vorschlag) darauf zugreifen kann.
+let latestReadinessResult = null;
+
+function computeReadiness(input){
+  const S = input.sleepScore ?? null;
+  const St = input.stressAvg3d ?? null;
+  const BB = input.bodyBatteryWake ?? null;
+  const RHR_score = input.rhrDeviationBpm != null
+    ? Math.max(0, 100 - Math.min(100, input.rhrDeviationBpm*10)) : null;
+
+  const hrvMap = {balanced:100, unbalanced_slight:60, unbalanced:30, low:10};
+  const H_score = input.hrvStatus ? (hrvMap[input.hrvStatus] ?? null) : null;
+
+  const tlMap = {optimal:100, low:80, high:50, very_high:20};
+  const TL_score = input.trainingLoadStatus ? (tlMap[input.trainingLoadStatus] ?? null) : null;
+
+  const RT_score = input.recoveryHoursRemaining != null
+    ? Math.max(0, 100 - (input.recoveryHoursRemaining/24)*100) : null;
+
+  const SleepHistory = input.sleepHistoryAvg ?? null;
+
+  const anyTier2 = H_score!=null || TL_score!=null || RT_score!=null;
+  let score, formula, breakdown;
+
+  if(!anyTier2){
+    formula = 'tier1';
+    const stScore = St!=null ? (100-St) : null;
+    const weights = {S:0.35, BB:0.25, St:0.25, RHR:0.15};
+    const values = {S, BB, St: stScore, RHR: RHR_score};
+    score = weightedReweight(weights, values);
+    breakdown = [
+      {key:'Schlaf', val:S, present: S!=null},
+      {key:'Body Battery', val:BB, present: BB!=null},
+      {key:'Stress', val: stScore, present: stScore!=null},
+      {key:'Ruhepuls', val: RHR_score, present: RHR_score!=null},
+    ];
+  } else {
+    formula = 'tier2';
+    const stScore = St!=null ? (100-St) : null;
+    const weights = {S:0.25, RT:0.15, H:0.20, TL:0.15, St:0.15, SleepHistory:0.10};
+    const values = {S, RT: RT_score, H: H_score, TL: TL_score, St: stScore, SleepHistory};
+    score = weightedReweight(weights, values);
+    breakdown = [
+      {key:'Schlaf', val:S, present: S!=null},
+      {key:'Erholungszeit', val:RT_score, present: RT_score!=null},
+      {key:'HRV-Status', val:H_score, present: H_score!=null},
+      {key:'Trainingslast', val:TL_score, present: TL_score!=null},
+      {key:'Stress', val:stScore, present: stScore!=null},
+      {key:'Schlaf-Historie', val:SleepHistory, present: SleepHistory!=null},
+    ];
+  }
+
+  let penalty = 0;
+  if(input.hoursAwakeBeforeLastSleep != null && input.hoursAwakeBeforeLastSleep > 16){
+    penalty = Math.min(20, (input.hoursAwakeBeforeLastSleep-16)*2);
+    if(score!=null) score = Math.max(0, score-penalty);
+  }
+
+  return {
+    score: score!=null ? Math.round(score*10)/10 : null,
+    formula, penalty, breakdown,
+  };
+}
+
+function readinessLabelFor(score){
+  if(score==null) return {text:'Keine Berechnung möglich', cls:'na'};
+  if(score>=80) return {text:'Sehr gut erholt', cls:'excellent'};
+  if(score>=65) return {text:'Gut erholt', cls:'good'};
+  if(score>=45) return {text:'Mittelmäßig erholt', cls:'fair'};
+  return {text:'Schlecht erholt', cls:'poor'};
+}
+
+function recommendationFor(score, penalty){
+  if(score==null){
+    return 'Zu wenige Daten für eine Berechnung. Sobald mehr Metriken vorliegen (Schlaf, Stress, Body Battery mindestens), kann hier eine Einschätzung erscheinen.';
+  }
+  if(score>=80){
+    return '💪 Dein Körper ist gut erholt. Die geplante Einheit (auch intensive Reize) kann wie vorgesehen durchgeführt werden.';
+  }
+  if(score>=65){
+    return '✅ Solide Erholung. Die geplante Einheit ist grundsätzlich machbar - bei Bedarf Umfang/Intensität leicht nach Gefühl dosieren.';
+  }
+  if(score>=45){
+    let txt = '⚠️ Mittelmäßige Erholung. Empfehlung: Intensität reduzieren - z.B. geplante Tempoeinheit als lockere Dauerleistung fahren/laufen.';
+    if(penalty>0) txt += ' (Zusätzlich Punktabzug wegen langer Wachzeit vor der letzten Nacht.)';
+    return txt;
+  }
+  return '🛑 Schlechte Erholung. Empfehlung: heute nur locker/regenerativ, oder Ruhetag einlegen. Die geplante intensive Einheit lieber verschieben.';
+}
+
+function setPlanChoice(choice){
+  planChoice = choice;
+  document.getElementById('btnUseAdjusted').classList.toggle('active', choice==='adjusted');
+  document.getElementById('btnKeepOriginal').classList.toggle('active', choice==='original');
+}
+
+function renderReadiness(data){
+  const section = document.getElementById('sectionReadiness');
+
+  const dto = safe(data, 'sleep.dailySleepDTO', safe(data,'sleep'));
+  const sleepScore = safe(dto, 'sleepScores.overall.value') ?? null;
+  const stressVal = safe(data, 'stress.avgStressLevel') ?? null;
+  // Body Battery: manche Accounts liefern "charged" (Erholung über den Tag),
+  // das ist kein direkter "beim Aufwachen"-Wert, aber die beste Näherung die wir haben
+  const bbWake = safe(data, 'body_battery.0.charged') ?? null;
+  const rhrDeviation = null; // benötigt 30-Tage-Schnitt, den wir noch nicht separat berechnen
+
+  const hrvStatusRaw = safe(data,'hrv.hrvSummary.status') ?? safe(data,'sleep.hrvStatus');
+  const hrvStatusMap = {BALANCED:'balanced', UNBALANCED:'unbalanced', LOW:'low'};
+  const hrvStatus = hrvStatusRaw ? (hrvStatusMap[hrvStatusRaw.toUpperCase()] ?? null) : null;
+
+  // Trainingslast: Garmin liefert hier ACWR-Status (Optimal/Low/High/Very High)
+  const tlStatusRaw = safe(data,'training_status.mostRecentTrainingStatus.latestTrainingStatusData')
+    ? Object.values(safe(data,'training_status.mostRecentTrainingStatus.latestTrainingStatusData'))[0]?.acuteTrainingLoadDTO?.acwrStatus
+    : null;
+  let trainingLoadStatus = null;
+  if(tlStatusRaw){
+    const t = tlStatusRaw.toString().toUpperCase();
+    if(t.includes('OPTIMAL')) trainingLoadStatus='optimal';
+    else if(t.includes('LOW')) trainingLoadStatus='low';
+    else if(t.includes('VERY_HIGH') || t.includes('OVERREACH') || t.includes('UNPRODUCTIVE')) trainingLoadStatus='very_high';
+    else if(t.includes('HIGH')) trainingLoadStatus='high';
+  }
+
+  // Recovery Time: manche Accounts liefern das über training_readiness (Forerunner 255 tut das nicht)
+  const recoveryHours = safe(data,'training_readiness.0.recoveryTime')
+    ?? safe(data,'training_readiness.recoveryTime') ?? null;
+
+  const result = computeReadiness({
+    sleepScore, stressAvg3d: stressVal, bodyBatteryWake: bbWake,
+    rhrDeviationBpm: rhrDeviation, hrvStatus, trainingLoadStatus,
+    recoveryHoursRemaining: recoveryHours, sleepHistoryAvg: null,
+    hoursAwakeBeforeLastSleep: null,
+  });
+
+  // Global merken, damit der Kalender (vorausschauender Einheiten-Vorschlag für die
+  // nächsten Tage) auf den aktuell berechneten Bereitschaftswert zugreifen kann
+  latestReadinessResult = result;
+
+  if(result.score==null && result.breakdown.every(b=>!b.present)){
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+
+  const labelInfo = readinessLabelFor(result.score);
+  document.getElementById('readinessScore').textContent = result.score ?? '–';
+  document.getElementById('readinessScore').style.color =
+    {excellent:'var(--accent)', good:'#8fd49f', fair:'#e0c877', poor:'#e08787', na:'var(--ink-dim)'}[labelInfo.cls];
+  document.getElementById('readinessLabel').textContent = labelInfo.text;
+  document.getElementById('readinessFormula').textContent =
+    result.formula==='tier2' ? 'Berechnet aus Tier-1- und Tier-2-Metriken deiner Uhr' : 'Berechnet aus Basis-Metriken (Tier 1)';
+  document.getElementById('readinessRecommendation').textContent = recommendationFor(result.score, result.penalty);
+
+  const breakdownEl = document.getElementById('readinessBreakdown');
+  breakdownEl.innerHTML = result.breakdown.map(b=>
+    `<div class="breakdown-item ${b.present?'':'missing'}"><b>${b.present ? Math.round(b.val) : '–'}</b>${b.key}</div>`
+  ).join('');
+}
+
+function renderDaily(data){
+  document.getElementById('dateTag').textContent = data.date || '–';
+
+  const importTag = document.getElementById('lastImportTag');
+  if(data.fetched_at){
+    try{
+      const tz = getUserTimezone();
+      const d = new Date(data.fetched_at);
+      const timeStr = d.toLocaleTimeString('de-DE', {hour:'2-digit', minute:'2-digit', timeZone: tz});
+      const dateStr = d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'numeric', timeZone: tz});
+      importTag.textContent = 'Letzter Import: ' + dateStr + ', ' + timeStr + ' Uhr';
+    }catch(e){
+      importTag.textContent = '';
+    }
+  }
+
+  renderReadiness(data);
+  renderRecovery(data);
+  renderSleep(data.sleep);
+  renderPerformance(data);
+}
+
+function renderRecovery(data){
+  const grid = document.getElementById('recoveryGrid');
+  grid.innerHTML = '';
+  document.getElementById('sectionRecovery').style.display = 'block';
+
+  const cards = [];
+
+  const rhr = safe(data, 'resting_hr');
+  let rhrVal = '–';
+  if(rhr && !isErrorField(rhr)){
+    rhrVal = safe(rhr, 'allMetrics.metricsMap.WELLNESS_RESTING_HEART_RATE.0.value')
+          ?? safe(rhr, 'restingHeartRate')
+          ?? '–';
+  }
+  cards.push({label:'Ruhepuls', value: rhrVal, unit: rhrVal!=='–' ? 'bpm':'', metricKey:'rhr'});
+
+  const hrv = safe(data, 'hrv');
+  let hrvVal = '–', hrvStatus = null;
+  if(hrv && !isErrorField(hrv)){
+    hrvVal = safe(hrv, 'hrvSummary.lastNightAvg') ?? safe(hrv, 'lastNightAvg') ?? '–';
+    hrvStatus = safe(hrv, 'hrvSummary.status') ?? safe(hrv, 'status');
+  }
+  cards.push({label:'HRV (Nacht-⌀)', value: hrvVal, unit: hrvVal!=='–' ? 'ms':'', tag: hrvStatus ? qualifierTag(hrvStatus) : null, metricKey:'hrv'});
+
+  const bb = safe(data, 'body_battery');
+  let bbVal = '–';
+  if(bb && Array.isArray(bb) && bb.length){
+    const charged = safe(bb[0], 'charged');
+    const drained = safe(bb[0], 'drained');
+    if(charged!=null) bbVal = '+'+charged+' / -'+Math.abs(drained||0);
+  }
+  cards.push({label:'Body Battery', value: bbVal, unit:'', metricKey:'bodyBattery'});
+
+  const tr = safe(data, 'training_readiness');
+  let trVal = '–', trLevel = null;
+  if(tr && Array.isArray(tr) && tr.length && !isErrorField(tr[0])){
+    trVal = safe(tr[0], 'score') ?? '–';
+    trLevel = safe(tr[0], 'level');
+  } else if (tr && !isErrorField(tr) && !Array.isArray(tr)){
+    trVal = safe(tr, 'score') ?? '–';
+    trLevel = safe(tr, 'level');
+  }
+  if(trVal !== '–'){
+    cards.push({label:'Trainingsbereitschaft (Garmin)', value: trVal, unit: '/ 100', tag: trLevel ? qualifierTag(trLevel) : null});
+  }
+
+  // Trainingszustand (z.B. "Formaufbau", "Höchstform", "Ermüdet")
+  const statusPhrase = findFirstDeviceValue(data, 'training_status.mostRecentTrainingStatus.latestTrainingStatusData', 'trainingStatusFeedbackPhrase');
+  if(statusPhrase){
+    const desc = getStatusDescription(statusPhrase, TRAINING_STATUS_DESCRIPTIONS);
+    const card = document.createElement('div');
+    card.className = 'card wide';
+    card.innerHTML =
+      '<div class="card-label">Trainingszustand</div>'+
+      '<div class="card-value" style="font-size:22px;">'+humanizeStatusPhrase(statusPhrase)+'</div>'+
+      (desc ? '<div class="card-sub">'+desc+'</div>' : '');
+    grid.appendChild(card);
+  }
+
+  // Belastungsfokus / Trainingsbalance (z.B. "Ausbalanciert", "Anaerober Fokus")
+  const balancePhrase = findFirstDeviceValue(data, 'training_status.mostRecentTrainingLoadBalance.metricsTrainingLoadBalanceDTOMap', 'trainingBalanceFeedbackPhrase');
+  if(balancePhrase){
+    const desc = getStatusDescription(balancePhrase, TRAINING_BALANCE_DESCRIPTIONS);
+    const card = document.createElement('div');
+    card.className = 'card wide';
+    card.innerHTML =
+      '<div class="card-label">Belastungsfokus</div>'+
+      '<div class="card-value" style="font-size:22px;">'+humanizeStatusPhrase(balancePhrase)+'</div>'+
+      (desc ? '<div class="card-sub">'+desc+'</div>' : '');
+    grid.appendChild(card);
+  }
+
+  // Akute Trainingsbelastung (ACWR) mit optimalem Zielbereich
+  const acuteLoad = findFirstDeviceValue(data, 'training_status.mostRecentTrainingStatus.latestTrainingStatusData', 'acuteTrainingLoadDTO');
+  if(acuteLoad && acuteLoad.dailyTrainingLoadAcute != null){
+    const minC = acuteLoad.minTrainingLoadChronic;
+    const maxC = acuteLoad.maxTrainingLoadChronic;
+    const rangeStr = (minC != null && maxC != null)
+      ? `Zielbereich: ${Math.round(minC)}–${Math.round(maxC)}`
+      : '';
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<div class="card-label">Trainingsbelastung (akut)</div>'+
+      '<div class="card-value">'+Math.round(acuteLoad.dailyTrainingLoadAcute)+
+        '<span class="card-unit">'+(acuteLoad.acwrStatus ? humanizeStatusPhrase(acuteLoad.acwrStatus) : '')+'</span></div>'+
+      (rangeStr ? '<div class="card-sub">'+rangeStr+'</div>' : '');
+    grid.appendChild(card);
+  }
+
+  // Stress (Tagesdurchschnitt)
+  const stressAvg = safe(data, 'stress.avgStressLevel');
+  if(stressAvg != null){
+    cards.push({label:'Stress (⌀ heute)', value: stressAvg, unit:'/ 100', metricKey:'stress'});
+  }
+
+  cards.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'card' + (c.metricKey ? ' clickable-metric' : '');
+    div.innerHTML =
+      '<div class="card-label">'+c.label+'</div>'+
+      '<div class="card-value">'+c.value+'<span class="card-unit">'+(c.unit||'')+'</span></div>'+
+      (c.tag || '');
+    if(c.metricKey) div.onclick = () => openMetricHistoryModal(c.metricKey, c.label);
+    grid.appendChild(div);
+  });
+}
+
+function renderSleep(sleep){
+  const section = document.getElementById('sectionSleep');
+  if(!sleep || isErrorField(sleep)){
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+
+  const dto = safe(sleep, 'dailySleepDTO', sleep);
+  const deep = safe(dto, 'deepSleepSeconds', 0);
+  const light = safe(dto, 'lightSleepSeconds', 0);
+  const rem = safe(dto, 'remSleepSeconds', 0);
+  const awake = safe(dto, 'awakeSleepSeconds', 0);
+  const total = deep+light+rem+awake;
+
+  const segments = [
+    {sec: deep, color: 'var(--zone1)', name:'Tiefschlaf'},
+    {sec: light, color: 'var(--zone2)', name:'Leichtschlaf'},
+    {sec: rem, color: 'var(--zone3)', name:'REM'},
+    {sec: awake, color: 'var(--zone4)', name:'Wach'},
+  ];
+
+  const bar = document.getElementById('sleepBar');
+  bar.innerHTML = '';
+  segments.forEach(s=>{
+    if(s.sec<=0) return;
+    const pct = total>0 ? (s.sec/total*100) : 0;
+    const seg = document.createElement('div');
+    seg.className = 'sleep-seg';
+    seg.style.width = pct+'%';
+    seg.style.background = s.color;
+    bar.appendChild(seg);
+  });
+
+  const legend = document.getElementById('sleepLegend');
+  legend.innerHTML = segments.filter(s=>s.sec>0).map(s=>
+    '<span><span class="dot" style="background:'+s.color+'"></span>'+s.name+': '+fmtSeconds(s.sec)+'</span>'
+  ).join('');
+
+  const avgHr = safe(dto, 'avgHeartRate');
+  const spo2 = safe(dto, 'averageSpO2Value');
+  const stress = safe(dto, 'avgSleepStress');
+
+  let notes = [];
+  notes.push('Gesamtschlaf: <b style="color:var(--ink)">'+fmtSeconds(total)+'</b>');
+  if(avgHr) notes.push('⌀ Puls: '+avgHr+' bpm');
+  if(spo2) notes.push('⌀ SpO2: '+spo2+'%');
+  if(stress!=null) notes.push('⌀ Stress im Schlaf: '+stress);
+
+  document.getElementById('sleepSummary').innerHTML = notes.join(' &nbsp;·&nbsp; ');
+}
+
+function renderPerformance(data){
+  const grid = document.getElementById('performanceGrid');
+  grid.innerHTML = '';
+  document.getElementById('sectionPerformance').style.display = 'block';
+
+  const cards = [];
+
+  // VO2max: manche Accounts liefern das nur über training_status statt max_metrics
+  const maxMetrics = safe(data, 'max_metrics');
+  let vo2 = '–';
+  if(maxMetrics && Array.isArray(maxMetrics) && maxMetrics.length && !isErrorField(maxMetrics[0])){
+    vo2 = safe(maxMetrics[0], 'generic.vo2MaxPreciseValue') ?? safe(maxMetrics[0], 'generic.vo2MaxValue') ?? '–';
+  }
+  if(vo2 === '–'){
+    vo2 = safe(data, 'training_status.mostRecentVO2Max.generic.vo2MaxPreciseValue')
+       ?? safe(data, 'training_status.mostRecentVO2Max.generic.vo2MaxValue') ?? '–';
+  }
+  cards.push({label:'VO2max', value: vo2, unit: vo2!=='–' ? 'ml/kg/min':'', metricKey:'vo2max'});
+
+  const rp = safe(data, 'race_predictions');
+  if(rp && !isErrorField(rp)){
+    const half = safe(rp, 'timeHalfMarathon');
+    if(half){
+      const card = document.createElement('div');
+      card.className = 'card wide';
+      card.innerHTML =
+        '<div class="card-label">Zeitprognosen (Garmin)</div>'+
+        '<div style="display:flex; gap:24px; flex-wrap:wrap; margin-top:6px;">'+
+          '<div><div class="card-value" style="font-size:20px;">'+fmtHMS(safe(rp,'time5K'))+'</div><div class="card-sub">5 km</div></div>'+
+          '<div><div class="card-value" style="font-size:20px;">'+fmtHMS(safe(rp,'time10K'))+'</div><div class="card-sub">10 km</div></div>'+
+          '<div><div class="card-value" style="font-size:20px; color:var(--accent);">'+fmtHMS(safe(rp,'timeHalfMarathon'))+'</div><div class="card-sub">Halbmarathon</div></div>'+
+          '<div><div class="card-value" style="font-size:20px;">'+fmtHMS(safe(rp,'timeMarathon'))+'</div><div class="card-sub">Marathon</div></div>'+
+        '</div>';
+      grid.appendChild(card);
+    }
+  }
+
+  const lt = safe(data, 'lactate_threshold');
+  if(lt && !isErrorField(lt)){
+    const hr = safe(lt, 'speed_and_heart_rate.heartRate');
+    const ftp = safe(lt, 'power.functionalThresholdPower');
+    // Hinweis: das "speed"-Feld von Garmin liegt in einer nicht standardmäßigen
+    // internen Einheit vor (nicht m/s) und wird daher hier bewusst nicht in eine
+    // Pace umgerechnet, um keine falsche Zahl anzuzeigen.
+
+    if(hr || ftp){
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML =
+        '<div class="card-label">Laktatschwelle</div>'+
+        '<div class="card-value">'+(hr || '–')+'<span class="card-unit">bpm</span></div>'+
+        '<div class="card-sub">'+(ftp ? 'FTP: '+ftp+' Watt' : '')+'</div>';
+      grid.appendChild(card);
+    }
+  }
+
+  const steps = safe(data, 'steps');
+  if(steps && Array.isArray(steps) && !isErrorField(steps)){
+    const totalSteps = steps.reduce((sum,s)=> sum + (safe(s,'steps',0)||0), 0);
+    cards.push({label:'Schritte', value: totalSteps.toLocaleString('de-DE'), unit:''});
+  }
+
+  cards.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'card' + (c.metricKey ? ' clickable-metric' : '');
+    div.innerHTML =
+      '<div class="card-label">'+c.label+'</div>'+
+      '<div class="card-value">'+c.value+'<span class="card-unit">'+(c.unit||'')+'</span></div>';
+    if(c.metricKey) div.onclick = () => openMetricHistoryModal(c.metricKey, c.label);
+    grid.appendChild(div);
+  });
+
+  if(grid.children.length===0){
+    document.getElementById('sectionPerformance').style.display='none';
+  }
+}
+
+// Icons für gängige Garmin-Sportarten-Schlüssel, mit lesbarem Fallback für unbekannte
+const WEEKDAY_LABELS = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+const ACTIVITY_SPORT_ICONS = {
+  running: '🏃', treadmill_running: '🏃', trail_running: '🏃',
+  cycling: '🚴', road_biking: '🚴', mountain_biking: '🚵', gravel_cycling: '🚴',
+  lap_swimming: '🏊', open_water_swimming: '🏊',
+  soccer: '⚽', football: '⚽',
+  strength_training: '💪', fitness_equipment: '💪',
+  hiking: '🥾', walking: '🚶',
+  other: '🏅',
+};
+function sportIconFor(typeKey){
+  if(!typeKey) return '🏅';
+  return ACTIVITY_SPORT_ICONS[typeKey] || '🏅';
+}
+function sportLabelFor(typeKey){
+  if(!typeKey) return 'Aktivität';
+  return typeKey.split('_').map(w => w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+}
+
+let allActivitiesData = [];
+let activityWeekViewDate = new Date();
+let activityViewMode = 'day'; // 'day' | 'week' | 'month'
+
+function isSameDate(a, b){
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+function toDateKey(date){
+  return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+}
+
+// Gruppiert alle geladenen Aktivitäten nach "YYYY-MM-DD" Datumsschlüssel - wird von
+// der kombinierten Kalenderansicht, dem Bereitschafts-Vorschlag und der Plan-Analyse
+// genutzt, um Aktivitäten eines bestimmten Tages schnell nachzuschlagen.
+function groupActivitiesByDate(){
+  const byDate = {};
+  allActivitiesData.forEach(act => {
+    const startLocal = safe(act,'startTimeLocal','') || '';
+    const dateStr = startLocal.split(' ')[0];
+    if(!dateStr) return;
+    if(!byDate[dateStr]) byDate[dateStr] = [];
+    byDate[dateStr].push(act);
+  });
+  return byDate;
+}
+
+function renderActivities(activities){
+  if(!activities || isErrorField(activities) || !Array.isArray(activities) || activities.length===0){
+    allActivitiesData = [];
+    return;
+  }
+  allActivitiesData = activities;
+  // Kalender neu zeichnen, damit die Aktivitäts-Icons an den entsprechenden Tagen erscheinen
+  if(trainingsplanData) renderCalendarMonth();
+}
+
+// ---------- Aktivitäts-Detailansicht (Splits, HF-Verlauf, Wetter, ...) ----------
+let activityDetailsCache = {}; // { activityId: {...} } - vermeidet Mehrfach-Laden derselben Aktivität
+
+async function openActivityDetailView(activityId){
+  const box = document.getElementById('weekModalBox');
+  box.innerHTML = '<button class="modal-close-btn" onclick="closeWeekModal()">✕</button><div style="padding:30px 0; text-align:center; color:var(--ink-dim);">Lade Details …</div>';
+  document.getElementById('weekModalOverlay').classList.add('active');
+
+  try{
+    const details = await loadActivityDetails(activityId, true);
+    renderActivityDetailModal(details);
+  }catch(e){
+    box.innerHTML = '<button class="modal-close-btn" onclick="closeWeekModal()">✕</button>'+
+      '<div style="padding:20px 0; color:#e08787; font-size:13px; line-height:1.6;">'+
+      'Details konnten nicht geladen werden: '+e.message+'<br><br>'+
+      'Mögliche Gründe: die Datei ist beim automatischen Import noch nicht (vollständig) erstellt worden, '+
+      'oder ein zwischenzeitlicher Netzwerkfehler beim Laden.<br><br>'+
+      '<button class="toggle-btn active" onclick="openActivityDetailView('+activityId+')">Erneut versuchen</button>'+
+      '</div>';
+  }
+}
+
+async function loadActivityDetails(activityId, forceRefresh){
+  if(!forceRefresh && activityDetailsCache[activityId]) return activityDetailsCache[activityId];
+
+  const config = getGithubConfig();
+  if(!config) throw new Error('Keine GitHub-Verbindung eingerichtet.');
+
+  const data = await fetchFromGithub(config, 'data/activity_details/'+activityId+'.json');
+
+  // Grobe Plausibilitätsprüfung: eine gültige Detaildatei sollte mindestens
+  // ein "summary"-Feld enthalten. Ist die Datei leer/kaputt, lieber einen
+  // klaren Fehler werfen als eine leere Ansicht zu zeigen.
+  if(!data || typeof data !== 'object' || (!data.summary && !data.details)){
+    throw new Error('Die Datendatei scheint unvollständig zu sein (kein "summary"-Feld gefunden).');
+  }
+
+  activityDetailsCache[activityId] = data;
+  return data;
+}
+
+// Sportarten, bei denen Geschwindigkeit sinnvollerweise in km/h statt Pace (min/km)
+// angezeigt wird - typischerweise alles auf Rädern.
+const SPEED_BASED_SPORTS = ['cycling','road_biking','mountain_biking','gravel_cycling','indoor_cycling','virtual_ride'];
+
+function isSpeedBasedSport(sport){
+  return SPEED_BASED_SPORTS.includes(sport);
+}
+
+function fmtPaceOrSpeed(distM, durationSec, sport){
+  if(!distM || !durationSec) return '–';
+  if(isSpeedBasedSport(sport)){
+    const kmh = (distM/1000) / (durationSec/3600);
+    return kmh.toFixed(1)+' km/h';
+  }
+  const paceSecPerKm = durationSec / (distM/1000);
+  return fmtHMS(paceSecPerKm)+'/km';
+}
+
+// ---------- Aktivitäts-Graphen (Pace/HF/Höhe/Leistung/Kadenz/etc.) ----------
+// Garmins get_activity_details liefert einen Sekunden-für-Sekunde-Verlauf als
+// "metricDescriptors" (Liste der verfügbaren Felder mit Index) + "activityDetailMetrics"
+// (die eigentlichen Werte, ein Array pro Zeitpunkt). Welche Felder vorhanden sind,
+// hängt vom Gerät ab (z.B. Leistung beim Laufen nur mit Laufleistungsmesser).
+
+const RUN_METRIC_DEFS = [
+  { key: 'directSpeed', label: 'Pace', unit: 'min/km', color: 'var(--zone2)', paceStyle: true },
+  { key: 'directHeartRate', label: 'Herzfrequenz', unit: 'bpm', color: 'var(--zone5)' },
+  { key: 'directElevation', label: 'Höhe', unit: 'm', color: 'var(--ink-dim)' },
+  { key: 'directPower', label: 'Leistung', unit: 'W', color: 'var(--zone3)' },
+  { key: 'directRunCadence', label: 'Schrittfrequenz', unit: 'spm', color: 'var(--zone1)' },
+  { key: 'directStrideLength', label: 'Schrittlänge', unit: 'm', color: 'var(--zone1)' },
+  { key: 'directVerticalRatio', label: 'Vertikales Verhältnis', unit: '%', color: 'var(--zone4)' },
+  { key: 'directVerticalOscillation', label: 'Vertikale Bewegung', unit: 'cm', color: 'var(--zone4)' },
+  { key: 'directGroundContactTime', label: 'Bodenkontaktzeit', unit: 'ms', color: 'var(--zone1)' },
+  { key: 'directTemperature', label: 'Temperatur', unit: '°C', color: 'var(--zone2)' },
+];
+
+const RIDE_METRIC_DEFS = [
+  { key: 'directSpeed', label: 'Geschwindigkeit', unit: 'km/h', color: 'var(--zone2)', speedStyle: true },
+  { key: 'directHeartRate', label: 'Herzfrequenz', unit: 'bpm', color: 'var(--zone5)' },
+  { key: 'directElevation', label: 'Höhe', unit: 'm', color: 'var(--ink-dim)' },
+  { key: 'directPower', label: 'Leistung', unit: 'W', color: 'var(--zone3)' },
+  { key: 'directTemperature', label: 'Temperatur', unit: '°C', color: 'var(--zone2)' },
+];
+
+function extractMetricSeries(details, metricKey){
+  const descriptors = safe(details, 'details.metricDescriptors');
+  const metrics = safe(details, 'details.activityDetailMetrics');
+  if(!Array.isArray(descriptors) || !Array.isArray(metrics)) return null;
+  const descriptor = descriptors.find(d => d.key === metricKey);
+  if(!descriptor) return null;
+  const idx = descriptor.metricsIndex;
+  const series = metrics.map(m => m.metrics ? m.metrics[idx] : null).filter(v => v != null && !isNaN(v));
+  if(series.length === 0) return null;
+  return series;
+}
+
+// ---------- GPS-Route ----------
+// Garmin liefert die Streckenpunkte entweder als eigenes "geoPolylineDTO"-Feld
+// (Liste von {lat, lon}) oder als reguläre Metriken directLatitude/directLongitude
+// im selben Sekunden-Verlauf wie Pace/HF - je nach Gerät/Aktivität. Beide Fälle abdecken.
+function extractGpsRoute(details){
+  const polyline = safe(details, 'details.geoPolylineDTO.polyline');
+  if(Array.isArray(polyline) && polyline.length > 0){
+    const points = polyline
+      .map(p => [safe(p,'lat'), safe(p,'lon')])
+      .filter(([lat,lon]) => lat != null && lon != null);
+    if(points.length > 0) return points;
+  }
+
+  const lats = extractMetricSeries(details, 'directLatitude');
+  const lons = extractMetricSeries(details, 'directLongitude');
+  if(lats && lons && lats.length === lons.length){
+    const points = lats.map((lat,i) => [lat, lons[i]]).filter(([lat,lon]) => lat!==0 && lon!==0);
+    if(points.length > 0) return points;
+  }
+  return null;
+}
+
+let activityMapInstance = null; // Leaflet-Kartenobjekt wird beim erneuten Öffnen neu erstellt
+
+function renderActivityMapSection(details, containerId){
+  const route = extractGpsRoute(details);
+  if(!route || route.length < 2) return '';
+
+  return '<div class="card-label" style="margin:20px 0 8px;">Streckenverlauf</div>'+
+    '<div id="'+containerId+'" class="activity-map"></div>';
+}
+
+// Muss NACH dem Einfügen des HTML in den DOM aufgerufen werden (Leaflet braucht ein
+// existierendes Element mit fester Höhe, um sich korrekt zu initialisieren).
+function initActivityMap(containerId, route){
+  const el = document.getElementById(containerId);
+  if(!el || typeof L === 'undefined') return;
+
+  if(activityMapInstance){
+    activityMapInstance.remove();
+    activityMapInstance = null;
+  }
+
+  const map = L.map(containerId, { zoomControl: true, attributionControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '© OpenStreetMap Mitwirkende',
+  }).addTo(map);
+
+  const latLngs = route.map(([lat,lon]) => [lat,lon]);
+  const polyline = L.polyline(latLngs, { color: '#7fe08c', weight: 3 }).addTo(map);
+  map.fitBounds(polyline.getBounds(), { padding: [16,16] });
+
+  L.circleMarker(latLngs[0], { radius:6, color:'#8fd49f', fillColor:'#8fd49f', fillOpacity:1 }).addTo(map).bindTooltip('Start');
+  L.circleMarker(latLngs[latLngs.length-1], { radius:6, color:'#e08787', fillColor:'#e08787', fillOpacity:1 }).addTo(map).bindTooltip('Ziel');
+
+  activityMapInstance = map;
+}
+
+function buildAvailableCharts(details, sport){
+  const metricSet = isSpeedBasedSport(sport) ? RIDE_METRIC_DEFS : RUN_METRIC_DEFS;
+  const available = [];
+  metricSet.forEach(def => {
+    let series = extractMetricSeries(details, def.key);
+    if(!series) return;
+    // Pace-Serie kommt von Garmin als Geschwindigkeit (m/s) - für Laufen in
+    // Sekunden/km umrechnen, für Rad in km/h (bereits über paceStyle/speedStyle markiert)
+    if(def.paceStyle){
+      series = series.map(v => v > 0 ? 1000/v : null).filter(v => v != null && v < 1800); // Ausreißer >30min/km kappen
+    } else if(def.speedStyle){
+      series = series.map(v => v*3.6);
+    }
+    if(series.length > 0) available.push({ ...def, series });
+  });
+  return available;
+}
+
+// Rendert einen einzelnen Graphen als leichtgewichtiges SVG (kein externes Chart-Framework nötig).
+// downsampled auf max. ~200 Punkte, damit auch lange Aktivitäten performant bleiben.
+function renderSvgLineChart(series, def){
+  const maxPoints = 200;
+  const step = Math.max(1, Math.floor(series.length / maxPoints));
+  const sampled = series.filter((_, i) => i % step === 0);
+
+  const width = 600, height = 120, padding = 4;
+  const minV = Math.min(...sampled);
+  const maxV = Math.max(...sampled);
+  const range = (maxV - minV) || 1;
+
+  const points = sampled.map((v, i) => {
+    const x = padding + (i/(sampled.length-1 || 1)) * (width - padding*2);
+    // Pace: kleiner = schneller = "besser", daher visuell nach oben (invertiert)
+    const norm = def.paceStyle ? (maxV - v)/range : (v - minV)/range;
+    const y = height - padding - norm * (height - padding*2);
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+
+  // Durchschnitt wird über die VOLLSTÄNDIGE Serie berechnet (nicht die für die Grafik
+  // downgesampelte Stichprobe) - sonst weicht der angezeigte Schnitt vom tatsächlichen
+  // Aktivitätsdurchschnitt ab, besonders bei langen Aktivitäten mit vielen Rohpunkten.
+  // Bei Pace zudem NICHT das arithmetische Mittel der Einzelwerte (Sek/km), sondern das
+  // harmonische Mittel (Durchschnittstempo = Gesamtstrecke / Gesamtzeit).
+  const avgV = def.paceStyle
+    ? series.length / series.reduce((s,v)=> s + (1/v), 0)
+    : series.reduce((s,v)=>s+v,0) / series.length;
+  const avgLabel = def.paceStyle ? fmtHMS(avgV)+'/km' : (Math.round(avgV*10)/10) + ' ' + def.unit;
+  const minLabel = def.paceStyle ? fmtHMS(maxV)+'/km' : (Math.round(minV*10)/10) + ' ' + def.unit; // bei Pace ist "min" visuell = größter Wert
+  const maxLabel = def.paceStyle ? fmtHMS(minV)+'/km' : (Math.round(maxV*10)/10) + ' ' + def.unit;
+
+  return `
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">${def.label}</span>
+        <span class="chart-avg">⌀ ${avgLabel}</span>
+      </div>
+      <svg viewBox="0 0 ${width} ${height}" class="chart-svg" preserveAspectRatio="none">
+        <polyline points="${points}" fill="none" stroke="${def.color}" stroke-width="2" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="chart-minmax"><span>${minLabel}</span><span>${maxLabel}</span></div>
+    </div>
+  `;
+}
+
+// ---------- Interaktiver Multi-Chart (mehrere Metriken überlagert, Zeitbereich wählbar) ----------
+// Jede Metrik wird auf ihre eigene Min/Max-Spanne normalisiert (0-1), damit z.B. Pace
+// (Sekunden) und Höhe (Meter) trotz komplett unterschiedlicher Wertebereiche gemeinsam
+// in einem Chart sichtbar sind. Ein Ziehen mit der Maus wählt einen Zeitbereich aus,
+// für den unten die Durchschnittswerte aller aktiven Metriken neu berechnet werden.
+
+let multiChartState = null; // { charts: [...], selection: {startIdx, endIdx} | null }
+
+function renderInteractiveMultiChartSection(details, sport, allCharts){
+  if(allCharts.length === 0) return '';
+
+  const chartsById = {};
+  allCharts.forEach(c => chartsById[c.key] = c);
+  multiChartState = { chartsById, selection: null };
+
+  let html = '<div class="card-label" style="margin:24px 0 8px;">Detailanalyse: Metriken kombinieren &amp; Zeitbereich auswählen</div>';
+  html += '<div class="metric-checkbox-row">';
+  allCharts.forEach((c, i) => {
+    const checked = i < 2 ? 'checked' : ''; // die ersten zwei Metriken initial aktiv
+    html += '<label class="metric-checkbox"><input type="checkbox" value="'+c.key+'" '+checked+' onchange="updateMultiChart()"> '+
+      '<span class="metric-swatch" style="background:'+c.color+'"></span>'+c.label+'</label>';
+  });
+  html += '</div>';
+
+  html += '<div class="multi-chart-card">';
+  html += '<svg viewBox="0 0 700 220" class="multi-chart-svg" id="multiChartSvg" preserveAspectRatio="none"></svg>';
+  html += '<div class="multi-chart-legend" id="multiChartLegend"></div>';
+  html += '<div class="multi-chart-selection-info" id="multiChartSelectionInfo">Zum Analysieren einen Zeitbereich im Graph markieren (klicken &amp; ziehen)</div>';
+  html += '</div>';
+
+  return html;
+}
+
+function getActiveMultiChartMetrics(){
+  const checked = Array.from(document.querySelectorAll('.metric-checkbox input:checked')).map(el => el.value);
+  return checked.map(key => multiChartState.chartsById[key]).filter(Boolean);
+}
+
+function updateMultiChart(){
+  const active = getActiveMultiChartMetrics();
+  drawMultiChart(active, multiChartState.selection);
+  updateMultiChartSelectionInfo(active, multiChartState.selection);
+}
+
+function drawMultiChart(activeCharts, selection){
+  const svg = document.getElementById('multiChartSvg');
+  const legend = document.getElementById('multiChartLegend');
+  if(!svg) return;
+
+  const width = 700, height = 220, padding = 6;
+  let inner = '';
+
+  // Selektions-Hervorhebung (falls ein Bereich ausgewählt wurde)
+  if(selection){
+    const maxLen = Math.max(...activeCharts.map(c=>c.series.length), 1);
+    const x1 = padding + (selection.startIdx/(maxLen-1||1)) * (width-padding*2);
+    const x2 = padding + (selection.endIdx/(maxLen-1||1)) * (width-padding*2);
+    inner += `<rect x="${Math.min(x1,x2)}" y="0" width="${Math.abs(x2-x1)}" height="${height}" fill="rgba(127,224,140,0.12)"/>`;
+  }
+
+  activeCharts.forEach(c => {
+    const series = c.series;
+    const maxPoints = 250;
+    const step = Math.max(1, Math.floor(series.length/maxPoints));
+    const sampled = series.filter((_,i)=> i%step===0);
+    const minV = Math.min(...sampled), maxV = Math.max(...sampled);
+    const range = (maxV-minV)||1;
+
+    const points = sampled.map((v,i)=>{
+      const x = padding + (i/(sampled.length-1||1)) * (width-padding*2);
+      const norm = c.paceStyle ? (maxV-v)/range : (v-minV)/range;
+      const y = height-padding - norm*(height-padding*2);
+      return x.toFixed(1)+','+y.toFixed(1);
+    }).join(' ');
+
+    inner += `<polyline points="${points}" fill="none" stroke="${c.color}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  });
+
+  svg.innerHTML = inner;
+
+  // Legende
+  legend.innerHTML = activeCharts.map(c=>
+    '<span><span class="dot" style="background:'+c.color+'"></span>'+c.label+'</span>'
+  ).join('');
+
+  setupMultiChartDrag(svg, activeCharts);
+}
+
+function updateMultiChartSelectionInfo(activeCharts, selection){
+  const infoEl = document.getElementById('multiChartSelectionInfo');
+  if(!infoEl) return;
+
+  if(!selection || activeCharts.length===0){
+    infoEl.textContent = 'Zum Analysieren einen Zeitbereich im Graph markieren (klicken & ziehen)';
+    return;
+  }
+
+  const parts = activeCharts.map(c => {
+    const from = Math.min(selection.startIdx, selection.endIdx);
+    const to = Math.max(selection.startIdx, selection.endIdx);
+    const slice = c.series.slice(from, to+1);
+    if(slice.length===0) return null;
+    // Siehe renderSvgLineChart: Pace braucht harmonisches statt arithmetisches Mittel
+    const avg = c.paceStyle
+      ? slice.length / slice.reduce((s,v)=> s + (1/v), 0)
+      : slice.reduce((s,v)=>s+v,0)/slice.length;
+    const label = c.paceStyle ? fmtHMS(avg)+'/km' : (Math.round(avg*10)/10)+' '+c.unit;
+    return c.label+': ⌀ '+label;
+  }).filter(Boolean);
+
+  infoEl.innerHTML = '<b>Ausgewählter Bereich:</b> ' + parts.join(' · ');
+}
+
+// Klicken & Ziehen auf dem SVG wählt einen Indexbereich aus (funktioniert auch per Touch)
+function setupMultiChartDrag(svg, activeCharts){
+  let dragging = false;
+  let startIdx = null;
+
+  function pointerToIndex(evt){
+    const rect = svg.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    const relX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const maxLen = Math.max(...activeCharts.map(c=>c.series.length), 1);
+    return Math.round(relX * (maxLen-1));
+  }
+
+  svg.onmousedown = svg.ontouchstart = (evt) => {
+    dragging = true;
+    startIdx = pointerToIndex(evt);
+  };
+  svg.onmousemove = svg.ontouchmove = (evt) => {
+    if(!dragging) return;
+    const endIdx = pointerToIndex(evt);
+    multiChartState.selection = { startIdx, endIdx };
+    drawMultiChart(activeCharts, multiChartState.selection);
+    updateMultiChartSelectionInfo(activeCharts, multiChartState.selection);
+    evt.preventDefault();
+  };
+  svg.onmouseup = svg.ontouchend = () => { dragging = false; };
+  svg.onmouseleave = () => { dragging = false; };
+}
+
+function renderActivityChartsSection(details, sport){
+  const charts = buildAvailableCharts(details, sport);
+  if(charts.length === 0) return '';
+
+  let html = '<div class="card-label" style="margin:20px 0 8px;">Verlauf während der Aktivität</div>';
+  html += '<div class="charts-grid">';
+  charts.forEach(c => { html += renderSvgLineChart(c.series, c); });
+  html += '</div>';
+
+  html += renderInteractiveMultiChartSection(details, sport, charts);
+  return html;
+}
+
+// ---------- Zeit in Herzfrequenz-/Leistungszonen ----------
+function renderZoneTimeSection(details){
+  const hrZones = details.hr_zones;
+  const powerZones = details.power_zones;
+  let html = '';
+
+  if(Array.isArray(hrZones) && hrZones.length > 0){
+    html += renderZoneBar('Zeit in Herzfrequenz-Zonen', hrZones, 'secsInZone', 'zoneNumber');
+  }
+  if(Array.isArray(powerZones) && powerZones.length > 0){
+    html += renderZoneBar('Zeit in Leistungszonen', powerZones, 'secsInZone', 'zoneNumber');
+  }
+  return html;
+}
+
+function renderZoneBar(title, zones, secsKey, zoneKey){
+  const totalSecs = zones.reduce((s,z) => s + (safe(z,secsKey)||0), 0);
+  if(totalSecs === 0) return '';
+
+  const zoneColors = ['var(--zone1)','var(--zone2)','var(--zone3)','var(--zone4)','var(--zone5)'];
+  let html = '<div class="card-label" style="margin:20px 0 8px;">'+title+'</div>';
+  html += '<div class="sleep-bar" style="margin-bottom:8px;">';
+  zones.forEach((z, i) => {
+    const secs = safe(z, secsKey) || 0;
+    if(secs <= 0) return;
+    const pct = (secs/totalSecs*100);
+    html += '<div class="sleep-seg" style="width:'+pct+'%; background:'+(zoneColors[i]||'var(--ink-dim)')+';"></div>';
+  });
+  html += '</div>';
+  html += '<div class="sleep-legend">';
+  zones.forEach((z, i) => {
+    const secs = safe(z, secsKey) || 0;
+    if(secs <= 0) return;
+    const zoneNum = safe(z, zoneKey) ?? (i+1);
+    html += '<span><span class="dot" style="background:'+(zoneColors[i]||'var(--ink-dim)')+'"></span>Zone '+zoneNum+': '+fmtSeconds(secs)+'</span>';
+  });
+  html += '</div>';
+  return html;
+}
+
+// ---------- Trainingseffekt ----------
+function renderTrainingEffectSection(summary){
+  const aerobicTE = safe(summary, 'summaryDTO.trainingEffect');
+  const anaerobicTE = safe(summary, 'summaryDTO.anaerobicTrainingEffect');
+  const teLabel = safe(summary, 'summaryDTO.trainingEffectLabel');
+  const vo2maxEffect = safe(summary, 'summaryDTO.vO2MaxValue');
+
+  if(aerobicTE == null && anaerobicTE == null) return '';
+
+  let html = '<div class="grid" style="margin:20px 0;">';
+  if(aerobicTE != null) html += '<div class="card"><div class="card-label">Trainingseffekt (aerob)</div><div class="card-value" style="font-size:20px;">'+aerobicTE.toFixed(1)+'</div>'+(teLabel?'<div class="card-sub">'+humanizeStatusPhrase(teLabel)+'</div>':'')+'</div>';
+  if(anaerobicTE != null) html += '<div class="card"><div class="card-label">Trainingseffekt (anaerob)</div><div class="card-value" style="font-size:20px;">'+anaerobicTE.toFixed(1)+'</div></div>';
+  if(vo2maxEffect != null) html += '<div class="card"><div class="card-label">VO2max-Einfluss</div><div class="card-value" style="font-size:20px;">'+vo2maxEffect+'</div></div>';
+  html += '</div>';
+  return html;
+}
+
+
+function renderActivityDetailModal(details){
+  const box = document.getElementById('weekModalBox');
+  const summary = details.summary || {};
+  const splits = safe(details, 'splits.lapDTOs') || safe(details, 'splits') || [];
+  const typedSplits = safe(details, 'typed_splits.splits') || safe(details, 'typed_splits.lapDTOs') || safe(details, 'typed_splits') || [];
+  const weather = details.weather || {};
+
+  const sport = safe(summary, 'activityTypeDTO.typeKey') || safe(summary, 'activityType.typeKey');
+  const activityName = safe(summary, 'activityName') || safe(details, 'summary.activityName');
+  const distanceM = safe(summary,'summaryDTO.distance');
+  const distanceKm = distanceM ? (distanceM/1000).toFixed(2)+' km' : '–';
+  const totalDuration = safe(summary,'summaryDTO.duration');
+  const duration = fmtSeconds(totalDuration);
+  const avgHr = safe(summary,'summaryDTO.averageHR');
+  const calories = safe(summary,'summaryDTO.calories');
+  const elevGain = safe(summary,'summaryDTO.elevationGain');
+  const avgPaceOrSpeed = fmtPaceOrSpeed(distanceM, totalDuration, sport);
+  const avgPower = safe(summary,'summaryDTO.averagePower') ?? safe(summary,'summaryDTO.avgPower');
+  const normPower = safe(summary,'summaryDTO.normalizedPower');
+  const athleteWeightKg = safe(summary, 'summaryDTO.userWeight') ? safe(summary,'summaryDTO.userWeight')/1000 : null;
+
+  let html = '<button class="modal-close-btn" onclick="closeWeekModal()">✕</button>';
+  html += '<div class="card-label">'+sportIconFor(sport)+' '+sportLabelFor(sport)+'</div>';
+  // Lauftitel (bzw. Titel jeder Aktivität) übernehmen, statt generisch "Aktivitätsdetails"
+  html += '<h2 style="margin:6px 0 16px; font-size:20px;">'+(activityName || 'Aktivitätsdetails')+'</h2>';
+
+  // Gesamt-Zusammenfassungszeile: alle wichtigen Kennzahlen der kompletten Aktivität auf einen Blick
+  html += '<div class="grid" style="margin-bottom:20px;">';
+  html += '<div class="card"><div class="card-label">Distanz</div><div class="card-value" style="font-size:20px;">'+distanceKm+'</div></div>';
+  html += '<div class="card"><div class="card-label">Dauer</div><div class="card-value" style="font-size:20px;">'+duration+'</div></div>';
+  html += '<div class="card"><div class="card-label">'+(isSpeedBasedSport(sport)?'⌀ Geschwindigkeit':'⌀ Pace')+'</div><div class="card-value" style="font-size:20px;">'+avgPaceOrSpeed+'</div></div>';
+  if(avgHr) html += '<div class="card"><div class="card-label">⌀ Herzfrequenz</div><div class="card-value" style="font-size:20px;">'+Math.round(avgHr)+'<span class="card-unit">bpm</span></div></div>';
+  if(avgPower) html += '<div class="card"><div class="card-label">⌀ Leistung</div><div class="card-value" style="font-size:20px;">'+Math.round(avgPower)+'<span class="card-unit">W</span></div></div>';
+  if(normPower) html += '<div class="card"><div class="card-label">Normalisierte Leistung</div><div class="card-value" style="font-size:20px;">'+Math.round(normPower)+'<span class="card-unit">W</span></div></div>';
+  if(avgPower && athleteWeightKg) html += '<div class="card"><div class="card-label">⌀ Watt/kg</div><div class="card-value" style="font-size:20px;">'+(avgPower/athleteWeightKg).toFixed(2)+'<span class="card-unit">W/kg</span></div></div>';
+  if(calories) html += '<div class="card"><div class="card-label">Kalorien</div><div class="card-value" style="font-size:20px;">'+Math.round(calories)+'</div></div>';
+  if(elevGain) html += '<div class="card"><div class="card-label">Höhenmeter</div><div class="card-value" style="font-size:20px;">'+Math.round(elevGain)+'<span class="card-unit">m</span></div></div>';
+  html += '</div>';
+
+  // Trainingseffekt (aerob/anaerob/VO2max-Einfluss)
+  html += renderTrainingEffectSection(summary);
+
+  // Intervall-Aufschlüsselung: Garmin klassifiziert strukturierte Workout-Schritte
+  // (typed_splits) mit einem Typ wie WARMUP/INTERVAL/RECOVERY/COOLDOWN. Falls vorhanden,
+  // gruppieren wir danach - so lassen sich z.B. nur die "harten" Intervalle vergleichen.
+  const intervalGroups = groupSplitsByIntervalType(typedSplits);
+  if(intervalGroups){
+    html += renderIntervalBreakdown(intervalGroups, sport);
+  }
+
+  if(Array.isArray(splits) && splits.length > 0){
+    html += renderSplitsTableSection(splits, typedSplits, sport);
+  }
+
+  // Zeit in Herzfrequenz- und Leistungszonen
+  html += renderZoneTimeSection(details);
+
+  // Streckenkarte (falls GPS-Daten vorhanden)
+  const mapContainerId = 'activityMap_' + (details.activity_id || Date.now());
+  html += renderActivityMapSection(details, mapContainerId);
+
+  // Alle verfügbaren Verlaufsgraphen (Pace/HF/Höhe/Leistung/Kadenz/Schrittlänge/
+  // vertikales Verhältnis/vertikale Bewegung/Bodenkontaktzeit/Temperatur je nach Sportart)
+  html += renderActivityChartsSection(details, sport);
+
+  const tempC = safe(weather, 'temp');
+  if(tempC != null){
+    html += '<div class="card-sub" style="margin-top:16px;">Wetter zur Aktivität: '+Math.round(tempC)+'°C'+(safe(weather,'weatherTypeDTO.desc')?' · '+safe(weather,'weatherTypeDTO.desc'):'')+'</div>';
+  }
+
+  box.innerHTML = html;
+
+  // Karte erst NACH dem Einfügen ins DOM initialisieren (Leaflet braucht ein
+  // existierendes Element mit Layout/Größe, sonst rendert die Kachel leer/kaputt)
+  const gpsRoute = extractGpsRoute(details);
+  if(gpsRoute && gpsRoute.length >= 2){
+    setTimeout(() => initActivityMap(mapContainerId, gpsRoute), 0);
+  }
+
+  // Interaktiven Multi-Chart initial zeichnen (die ersten zwei Metriken sind per
+  // Checkbox schon vorausgewählt, aber das SVG selbst muss noch befüllt werden)
+  if(multiChartState){
+    setTimeout(() => updateMultiChart(), 0);
+  }
+
+  // Splits-Tabelle initial mit "Alle" gefiltert rendern
+  if(currentSplitsData){
+    setTimeout(() => renderSplitsTable(), 0);
+  }
+}
+
+// Erkennt und gruppiert Intervall-Phasen (Warm-up/Intervall/Erholung/Cool-down) aus
+// Garmins typisierten Splits. Gibt null zurück, wenn keine solche Klassifizierung
+// vorliegt (z.B. bei einem einfachen, nicht strukturierten Lauf ohne Workout-Vorlage).
+const INTERVAL_TYPE_LABELS = {
+  WARMUP: { label: 'Warm-up', icon: '🔥' },
+  INTERVAL: { label: 'Lauf-Intervalle', icon: '⚡' },
+  ACTIVE: { label: 'Lauf-Intervalle', icon: '⚡' },
+  RECOVERY: { label: 'Erholung', icon: '💧' },
+  REST: { label: 'Erholung', icon: '💧' },
+  COOLDOWN: { label: 'Cool-down', icon: '🧊' },
+  // Reguläre Runden ohne strukturiertes Workout (manuelle Lap-Taste oder
+  // automatische Distanz-Runden) - Garmin liefert hier keinen Warm-up/Intervall/
+  // Erholungs-Typ, da diese Klassifizierung nur bei einem geplanten Workout entsteht.
+  RWD_RUN: { label: 'Laufen', icon: '🏃' },
+  RWD_BIKE: { label: 'Radfahren', icon: '🚴' },
+  LAP_BUTTON: { label: 'Laufen', icon: '🏃' },
+};
+
+function groupSplitsByIntervalType(typedSplits){
+  if(!Array.isArray(typedSplits) || typedSplits.length === 0) return null;
+
+  const groups = {};
+  let hasKnownType = false;
+
+  typedSplits.forEach(split => {
+    const rawType = (safe(split,'intervalType') || safe(split,'type') || '').toString().toUpperCase();
+    const known = INTERVAL_TYPE_LABELS[rawType];
+    if(known) hasKnownType = true;
+    const key = known ? rawType : 'OTHER';
+    if(!groups[key]) groups[key] = [];
+    groups[key].push(split);
+  });
+
+  if(!hasKnownType) return null; // keine erkennbare Intervall-Struktur - normale Splits-Tabelle reicht
+  return groups;
+}
+
+// ---------- Kilometer-Splits mit Rundentyp-Filter ----------
+// Ordnet jedem regulären Split (z.B. Kilometer-Runde) den passenden Rundentyp aus
+// typed_splits zu. Beide Listen haben oft UNTERSCHIEDLICHE Granularität (z.B. 18
+// Kilometer-Splits vs. 3 grobe Workout-Segmente) - eine reine Index-Zuordnung würde
+// daher meist komplett danebenliegen. Stattdessen wird jeder Split über seinen
+// Start-Zeitstempel dem typed_splits-Segment zugeordnet, in dessen Zeitfenster er liegt.
+function attachSplitTypes(splits, typedSplits){
+  if(!Array.isArray(typedSplits) || typedSplits.length === 0){
+    return splits.map(s => ({ ...s, _type: null }));
+  }
+
+  // Zeitfenster jedes typisierten Segments vorab berechnen (Start bis Start+Dauer)
+  const typedRanges = typedSplits.map(t => {
+    const startStr = safe(t,'startTimeGMT') || safe(t,'startTimeLocal');
+    const startMs = startStr ? new Date(startStr).getTime() : null;
+    const durSec = safe(t,'duration');
+    const rawType = (safe(t,'intervalType') || safe(t,'type') || '').toString().toUpperCase();
+    return {
+      startMs,
+      endMs: (startMs != null && durSec != null) ? startMs + durSec*1000 : null,
+      type: INTERVAL_TYPE_LABELS[rawType] ? rawType : null,
+    };
+  });
+
+  const anyValidRange = typedRanges.some(r => r.startMs != null && r.endMs != null);
+  if(!anyValidRange){
+    return splits.map(s => ({ ...s, _type: null }));
+  }
+
+  return splits.map(s => {
+    const startStr = safe(s,'startTimeGMT') || safe(s,'startTimeLocal');
+    const startMs = startStr ? new Date(startStr).getTime() : null;
+    if(startMs == null) return { ...s, _type: null };
+
+    // Segment finden, dessen Zeitfenster den Split-Start enthält
+    const match = typedRanges.find(r => r.startMs != null && r.endMs != null && startMs >= r.startMs && startMs < r.endMs);
+    return { ...s, _type: match ? match.type : null };
+  });
+}
+
+let currentSplitsFilter = 'ALL';
+let currentSplitsData = null; // { splits, sport } - für Neu-Rendern bei Filterwechsel
+
+function renderSplitsTableSection(splits, typedSplits, sport){
+  const splitsWithTypes = attachSplitTypes(splits, typedSplits);
+  currentSplitsData = { splits: splitsWithTypes, sport };
+  currentSplitsFilter = 'ALL';
+
+  const availableTypes = new Set(splitsWithTypes.map(s=>s._type).filter(Boolean));
+
+  let html = '<div class="card-label" style="margin-bottom:8px;">Kilometer-Splits</div>';
+
+  if(availableTypes.size > 0){
+    html += '<div class="split-filter-row" id="splitFilterRow">';
+    html += '<button class="swap-btn active" data-filter="ALL" onclick="setSplitsFilter(\'ALL\')">Alle</button>';
+    const order = ['WARMUP','INTERVAL','ACTIVE','RECOVERY','REST','COOLDOWN'];
+    const seen = new Set();
+    order.forEach(t => {
+      if(!availableTypes.has(t)) return;
+      const canonKey = (t==='ACTIVE') ? 'INTERVAL' : (t==='REST') ? 'RECOVERY' : t;
+      if(seen.has(canonKey)) return;
+      seen.add(canonKey);
+      const info = INTERVAL_TYPE_LABELS[t];
+      html += '<button class="swap-btn" data-filter="'+t+'" onclick="setSplitsFilter(\''+t+'\')">'+info.icon+' '+info.label+'</button>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div id="splitsTableContainer"></div>';
+  return html;
+}
+
+function setSplitsFilter(filter){
+  currentSplitsFilter = filter;
+  document.querySelectorAll('#splitFilterRow .swap-btn').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.filter === filter);
+  });
+  renderSplitsTable();
+}
+
+function renderSplitsTable(){
+  if(!currentSplitsData) return;
+  const { splits, sport } = currentSplitsData;
+  const container = document.getElementById('splitsTableContainer');
+  if(!container) return;
+
+  const filtered = currentSplitsFilter === 'ALL'
+    ? splits
+    : splits.filter(s => {
+        const canon = (s._type==='ACTIVE') ? 'INTERVAL' : (s._type==='REST') ? 'RECOVERY' : s._type;
+        const filterCanon = (currentSplitsFilter==='ACTIVE') ? 'INTERVAL' : (currentSplitsFilter==='REST') ? 'RECOVERY' : currentSplitsFilter;
+        return canon === filterCanon;
+      });
+
+  const speedBased = isSpeedBasedSport(sport);
+  let html = '<table style="margin-bottom:12px;"><thead><tr>'+
+    '<th>#</th><th>Distanz</th><th>Zeit</th><th>'+(speedBased?'km/h':'Pace')+'</th><th>⌀ HF</th>'+
+    '</tr></thead><tbody>';
+
+  filtered.forEach((split, i)=>{
+    const splitDist = safe(split,'distance');
+    const splitDur = safe(split,'duration');
+    const splitHr = safe(split,'averageHR');
+    const paceOrSpeed = fmtPaceOrSpeed(splitDist, splitDur, sport);
+    const distLabel = splitDist ? (splitDist/1000).toFixed(2)+' km' : '–';
+    // Sekundengenaue Zeit statt gerundeter Minutenangabe (fmtHMS statt fmtSeconds)
+    html += '<tr><td>'+(i+1)+'</td><td>'+distLabel+'</td><td>'+fmtHMS(splitDur)+'</td><td>'+paceOrSpeed+'</td><td>'+(splitHr?Math.round(splitHr)+' bpm':'–')+'</td></tr>';
+  });
+  html += '</tbody></table>';
+
+  // Zusammenfassungszeile: Gesamtdistanz, Gesamtzeit, Durchschnittspace/-geschwindigkeit, Durchschnitts-HF
+  if(filtered.length > 0){
+    const totalDist = filtered.reduce((s,x)=> s+(safe(x,'distance')||0), 0);
+    const totalDur = filtered.reduce((s,x)=> s+(safe(x,'duration')||0), 0);
+    // Zeitgewichteter Durchschnitt: ein 5-Minuten-Split mit 160bpm zählt mehr als
+    // ein 30-Sekunden-Split mit 140bpm - einfaches Mitteln der Split-Werte würde
+    // kurze Splits genauso stark gewichten wie lange und den Schnitt verfälschen.
+    let weightedHrSum = 0, weightedHrDuration = 0;
+    filtered.forEach(x => {
+      const hr = safe(x,'averageHR');
+      const dur = safe(x,'duration') || 0;
+      if(hr != null && dur > 0){
+        weightedHrSum += hr * dur;
+        weightedHrDuration += dur;
+      }
+    });
+    const avgHr = weightedHrDuration > 0 ? weightedHrSum / weightedHrDuration : null;
+    const avgPaceOrSpeed = fmtPaceOrSpeed(totalDist, totalDur, sport);
+
+    html += '<div class="splits-summary-row">';
+    html += '<div><span class="splits-summary-label">Gesamt</span><span class="splits-summary-value">'+(totalDist/1000).toFixed(2)+' km</span></div>';
+    html += '<div><span class="splits-summary-label">Zeit</span><span class="splits-summary-value">'+fmtHMS(totalDur)+'</span></div>';
+    html += '<div><span class="splits-summary-label">⌀ '+(speedBased?'km/h':'Pace')+'</span><span class="splits-summary-value">'+avgPaceOrSpeed+'</span></div>';
+    if(avgHr) html += '<div><span class="splits-summary-label">⌀ HF</span><span class="splits-summary-value">'+Math.round(avgHr)+' bpm</span></div>';
+    html += '</div>';
+  }
+
+  container.innerHTML = html;
+}
+
+function renderIntervalBreakdown(groups, sport){
+  let html = '<div class="card-label" style="margin-bottom:8px;">Intervall-Aufschlüsselung</div>';
+  html += '<div class="grid" style="margin-bottom:20px;">';
+
+  // Feste Reihenfolge: Warm-up -> Intervalle -> Erholung -> Cool-down -> Sonstiges
+  const order = ['WARMUP','INTERVAL','ACTIVE','RECOVERY','REST','COOLDOWN','OTHER'];
+  const seen = new Set();
+
+  order.forEach(key => {
+    if(!groups[key] || seen.has(key === 'ACTIVE' ? 'INTERVAL' : key === 'REST' ? 'RECOVERY' : key)) return;
+    const splitsInGroup = groups[key];
+    const info = INTERVAL_TYPE_LABELS[key] || { label:'Sonstige Abschnitte', icon:'○' };
+    seen.add(key);
+
+    const totalDist = splitsInGroup.reduce((s,x)=> s + (safe(x,'distance')||0), 0);
+    const totalDur = splitsInGroup.reduce((s,x)=> s + (safe(x,'duration')||0), 0);
+    // Zeitgewichteter Durchschnitt statt einfachem Mittel der Split-Werte (siehe
+    // renderSplitsTable für dieselbe Korrektur und Begründung)
+    let weightedHrSum = 0, weightedHrDuration = 0;
+    splitsInGroup.forEach(x => {
+      const hr = safe(x,'averageHR');
+      const dur = safe(x,'duration') || 0;
+      if(hr != null && dur > 0){ weightedHrSum += hr*dur; weightedHrDuration += dur; }
+    });
+    const avgHrGroup = weightedHrDuration > 0 ? weightedHrSum / weightedHrDuration : null;
+    const paceOrSpeed = fmtPaceOrSpeed(totalDist, totalDur, sport);
+
+    html += '<div class="card">';
+    html += '<div class="card-label">'+info.icon+' '+info.label+' ('+splitsInGroup.length+'x)</div>';
+    html += '<div class="card-value" style="font-size:16px;">'+fmtHMS(totalDur)+'</div>';
+    html += '<div class="card-sub">'+(totalDist?(totalDist/1000).toFixed(2)+' km · ':'')+paceOrSpeed+(avgHrGroup?' · ⌀ '+Math.round(avgHrGroup)+' bpm':'')+'</div>';
+    html += '</div>';
+  });
+
+  html += '</div>';
+  return html;
+}
+
+function openActivityDayModal(dateStr, dayActivities){
+  const box = document.getElementById('weekModalBox');
+  let html = '<button class="modal-close-btn" onclick="closeWeekModal()">✕</button>';
+  html += '<div class="card-label">Aktivitäten am '+dateStr+'</div>';
+  html += '<h2 style="margin:6px 0 16px; font-size:20px;">'+dayActivities.length+' '+(dayActivities.length===1?'Aktivität':'Aktivitäten')+'</h2>';
+
+  dayActivities.forEach(act => {
+    const sport = safe(act, 'activityType.typeKey');
+    const distanceKm = safe(act,'distance') ? (safe(act,'distance')/1000).toFixed(2)+' km' : '–';
+    const duration = fmtSeconds(safe(act,'duration'));
+    const avgHr = safe(act,'averageHR');
+    const startLocal = safe(act,'startTimeLocal','') || '';
+    const timeOfDay = startLocal.split(' ')[1] || '';
+    const actId = safe(act, 'activityId');
+
+    html += '<div class="week-day-row" style="cursor:pointer;" onclick="openActivityDetailView('+actId+')">';
+    html += '<div class="week-day-icon">'+sportIconFor(sport)+'</div>';
+    html += '<div class="week-day-meta">'+timeOfDay.slice(0,5)+'</div>';
+    html += '<div class="week-day-body">';
+    html += '<div class="week-day-title">'+sportLabelFor(sport)+'</div>';
+    html += '<div class="week-day-detail">'+[distanceKm, duration, avgHr?Math.round(avgHr)+' bpm ⌀':''].filter(Boolean).join(' · ')+' · <span style="color:var(--accent);">Details ansehen →</span></div>';
+    html += '</div></div>';
+  });
+
+  box.innerHTML = html;
+  document.getElementById('weekModalOverlay').classList.add('active');
+}
+
+// ---------- Tab-Navigation ----------
+function switchTab(tabName){
+  ['dashboard','calendar'].forEach(name => {
+    document.getElementById('tabPanel'+capitalize(name)).classList.toggle('active', name===tabName);
+    document.getElementById('tabBtn'+capitalize(name)).classList.toggle('active', name===tabName);
+  });
+}
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+// ---------- Trainingsplan-Kalender (JSX-Parser + Anzeige) ----------
+
+const TRAININGSPLAN_STORAGE_KEY = 'garmin_dashboard_trainingsplan';
+let trainingsplanData = null; // { phases, weeks, typeStyles }
+let calendarViewDate = new Date(); // aktuell angezeigter Monat
+const dayOverrides = {}; // { 'YYYY-MM-DD': { type, title, detail } } - manuelle Tages-Anpassungen
+
+
+// Extrahiert einen "const NAME = <Ausdruck>;" Block per Klammer-Balance-Zählung,
+// da JSX-Werte mehrzeilige, verschachtelte Arrays/Objekte sind.
+function extractConstBlock(source, name){
+  const startMarker = 'const ' + name + ' = ';
+  const startIdx = source.indexOf(startMarker);
+  if(startIdx === -1) return null;
+
+  let i = startIdx + startMarker.length;
+  const openChar = source[i];
+  const closeChar = openChar === '[' ? ']' : '}';
+  let depth = 0;
+  let end = i;
+
+  for(; i < source.length; i++){
+    if(source[i] === openChar) depth++;
+    if(source[i] === closeChar){
+      depth--;
+      if(depth === 0){ end = i+1; break; }
+    }
+  }
+  return source.slice(startIdx + startMarker.length, end);
+}
+
+// Wertet einen extrahierten JS-Ausdruck sicher aus - OHNE eval, in einem isolierten
+// Function-Scope ohne Zugriff auf window/document/globale Objekte.
+function safeEvalJsExpression(text){
+  if(!text) return null;
+  const fn = new Function('"use strict"; return (' + text + ');');
+  return fn();
+}
+
+function parseTrainingsplanJsx(source){
+  const phasesText = extractConstBlock(source, 'phases');
+  const weeksText = extractConstBlock(source, 'weeks');
+  const typeStylesText = extractConstBlock(source, 'typeStyles');
+
+  if(!weeksText){
+    throw new Error('Konnte kein "weeks"-Datenfeld in der Datei finden. Ist es das richtige Format?');
+  }
+
+  const phases = phasesText ? safeEvalJsExpression(phasesText) : [];
+  const weeks = safeEvalJsExpression(weeksText);
+  const typeStyles = typeStylesText ? safeEvalJsExpression(typeStylesText) : {};
+
+  return { phases, weeks, typeStyles };
+}
+
+// Wandelt "13.7" (Tag.Monat, aus der JSX "date"-Angabe) zusammen mit einem Referenzjahr
+// in ein "YYYY-MM-DD" Datum um. Das Jahr wird geschätzt: wenn der Monat kleiner ist als
+// der Startmonat der ersten Woche, gehen wir von einem Jahreswechsel aus.
+function resolveFullDate(dayMonthStr, referenceYear){
+  const [day, month] = dayMonthStr.split('.').map(Number);
+  return referenceYear + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+}
+
+function buildDateIndex(plan, referenceYear){
+  // Erstellt eine Map von "YYYY-MM-DD" -> { week, day-Objekt, phase }
+  const index = {};
+  let lastMonth = null;
+  let yearOffset = 0;
+
+  plan.weeks.forEach(week => {
+    week.days.forEach(dayEntry => {
+      const [, month] = dayEntry.date.split('.').map(Number);
+      if(lastMonth !== null && month < lastMonth){
+        yearOffset++; // Jahreswechsel erkannt (z.B. Dezember -> Januar)
+      }
+      lastMonth = month;
+      const fullDate = resolveFullDate(dayEntry.date, referenceYear + yearOffset);
+      index[fullDate] = { week: week.week, phase: week.phase, ...dayEntry };
+    });
+  });
+  return index;
+}
+
+function handleJsxUpload(file){
+  const reader = new FileReader();
+  reader.onload = async evt => {
+    try{
+      const parsed = parseTrainingsplanJsx(evt.target.result);
+      trainingsplanData = parsed;
+      trainingsplanData.dateIndex = buildDateIndex(parsed, calendarViewDate.getFullYear());
+      const planPayload = { phases: parsed.phases, weeks: parsed.weeks, typeStyles: parsed.typeStyles };
+      localStorage.setItem(TRAININGSPLAN_STORAGE_KEY, JSON.stringify(planPayload));
+
+      document.getElementById('statusJsx').textContent = '✓ ' + file.name + ' geladen (' + parsed.weeks.length + ' Wochen)';
+      document.getElementById('statusJsx').classList.add('ok');
+      document.getElementById('calendarContent').style.display = 'block';
+      renderCalendarMonth();
+
+      // Zusätzlich in GitHub speichern, damit der Plan geräteübergreifend verfügbar
+      // ist (nicht nur im localStorage dieses einen Browsers)
+      const config = getGithubConfig();
+      if(config){
+        try{
+          document.getElementById('statusJsx').textContent += ' · speichere in GitHub …';
+          await saveToGithub(config, 'data/trainingsplan.json', planPayload, 'Trainingsplan aktualisiert: ' + file.name);
+          document.getElementById('statusJsx').textContent = '✓ ' + file.name + ' geladen und in GitHub gespeichert (' + parsed.weeks.length + ' Wochen)';
+        }catch(saveErr){
+          console.log('Plan konnte nicht in GitHub gespeichert werden:', saveErr);
+          document.getElementById('statusJsx').textContent += ' (GitHub-Speichern fehlgeschlagen, Plan bleibt aber lokal verfügbar)';
+        }
+      }
+    }catch(e){
+      document.getElementById('statusJsx').textContent = 'Fehler beim Einlesen: ' + e.message;
+      document.getElementById('statusJsx').classList.remove('ok');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function setupJsxDropzone(){
+  const zone = document.getElementById('dropzoneJsx');
+  const input = document.getElementById('fileJsx');
+  zone.addEventListener('click', ()=> input.click());
+  zone.addEventListener('dragover', e=>{e.preventDefault(); zone.classList.add('drag');});
+  zone.addEventListener('dragleave', ()=> zone.classList.remove('drag'));
+  zone.addEventListener('drop', e=>{
+    e.preventDefault(); zone.classList.remove('drag');
+    if(e.dataTransfer.files.length) handleJsxUpload(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', e=>{
+    if(e.target.files.length) handleJsxUpload(e.target.files[0]);
+  });
+}
+
+async function tryRestoreTrainingsplan(){
+  const config = getGithubConfig();
+
+  // Zuerst versuchen, den Plan aus GitHub zu laden (geräteübergreifend verfügbar)
+  if(config){
+    try{
+      const planPayload = await fetchFromGithub(config, 'data/trainingsplan.json');
+      trainingsplanData = planPayload;
+      trainingsplanData.dateIndex = buildDateIndex(planPayload, calendarViewDate.getFullYear());
+      // lokalen Cache auf denselben Stand bringen, für schnelles Offline-Fallback
+      localStorage.setItem(TRAININGSPLAN_STORAGE_KEY, JSON.stringify(planPayload));
+      document.getElementById('statusJsx').textContent = '✓ Plan aus GitHub geladen (' + planPayload.weeks.length + ' Wochen)';
+      document.getElementById('statusJsx').classList.add('ok');
+      document.getElementById('calendarContent').style.display = 'block';
+      renderCalendarMonth();
+      return;
+    }catch(e){
+      console.log('Kein Trainingsplan in GitHub gefunden, versuche lokalen Cache.', e);
+    }
+  }
+
+  // Fallback: lokaler Cache in diesem Browser (z.B. wenn noch keine GitHub-Verbindung
+  // eingerichtet ist, oder GitHub kurzzeitig nicht erreichbar war)
+  try{
+    const raw = localStorage.getItem(TRAININGSPLAN_STORAGE_KEY);
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    trainingsplanData = parsed;
+    trainingsplanData.dateIndex = buildDateIndex(parsed, calendarViewDate.getFullYear());
+    document.getElementById('statusJsx').textContent = '✓ Plan aus vorheriger Sitzung geladen (' + parsed.weeks.length + ' Wochen)';
+    document.getElementById('statusJsx').classList.add('ok');
+    document.getElementById('calendarContent').style.display = 'block';
+    renderCalendarMonth();
+  }catch(e){
+    console.log('Kein gespeicherter Trainingsplan gefunden.', e);
+  }
+}
+
+const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+let calendarViewMode = 'month'; // 'day' | 'week' | 'month'
+
+function setCalendarViewMode(mode){
+  calendarViewMode = mode;
+  ['day','week','month'].forEach(m=>{
+    document.getElementById('calendarViewBtn'+m.charAt(0).toUpperCase()+m.slice(1)).classList.toggle('active', m===mode);
+  });
+  document.getElementById('calendarDayView').style.display = mode==='day' ? 'block' : 'none';
+  document.getElementById('calendarGrid').style.display = mode==='month' || mode==='week' ? 'grid' : 'none';
+  renderCalendarCurrentView();
+}
+
+function changeCalendarPeriod(delta){
+  if(calendarViewMode==='day') calendarViewDate.setDate(calendarViewDate.getDate()+delta);
+  else if(calendarViewMode==='week') calendarViewDate.setDate(calendarViewDate.getDate()+delta*7);
+  else calendarViewDate.setMonth(calendarViewDate.getMonth()+delta);
+  renderCalendarCurrentView();
+}
+
+function renderCalendarCurrentView(){
+  if(calendarViewMode==='day') renderCalendarDay();
+  else if(calendarViewMode==='week') renderCalendarWeek();
+  else renderCalendarMonth();
+}
+
+// ---------- Vorausschauender Einheiten-Vorschlag (nächste 1-3 Tage) ----------
+// Prüft, ob für einen der kommenden Tage eine intensive Einheit geplant ist, die
+// angesichts der aktuell berechneten Trainingsbereitschaft evtl. anzupassen wäre.
+// Dies ist NUR ein Vorschlag - die Person muss ihn über den bekannten Tausch-Button
+// aktiv bestätigen, nichts wird automatisch verändert.
+
+const INTENSIVE_TRAINING_TYPES = ['tempo', 'interval', 'race', 'long_run'];
+const dismissedSuggestions = new Set();
+
+// ---------- Konkrete Alternativ-Einheit aus Freitext ableiten ----------
+// Der Trainingsplan enthält keine strukturierten Pace/HF-Felder, nur Freitext
+// (z.B. "5x1000m bei 4:20-4:30/km"). Diese Funktionen parsen die Zahlen direkt
+// aus dem Text heraus, um daraus eine konkrete, konservativere Alternative
+// abzuleiten - statt nur einer generischen Kategorie wie "locker laufen".
+
+function extractPaceFromText(text){
+  if(!text) return null;
+  const rangeMatch = text.match(/(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})\s*(?:min\/km|\/km)/);
+  if(rangeMatch){
+    const minSec = parseInt(rangeMatch[1])*60 + parseInt(rangeMatch[2]);
+    const maxSec = parseInt(rangeMatch[3])*60 + parseInt(rangeMatch[4]);
+    return { minSecPerKm: Math.min(minSec,maxSec), maxSecPerKm: Math.max(minSec,maxSec) };
+  }
+  const singleMatch = text.match(/(\d{1,2}):(\d{2})\s*(?:min\/km|\/km)/);
+  if(singleMatch){
+    const sec = parseInt(singleMatch[1])*60 + parseInt(singleMatch[2]);
+    return { minSecPerKm: sec, maxSecPerKm: sec };
+  }
+  return null;
+}
+
+function extractHrFromText(text){
+  if(!text) return null;
+  const beforeMatch = text.match(/(?:hf|puls|herzfrequenz)[:\s]*(\d{2,3})\s*[-–]\s*(\d{2,3})/i);
+  if(beforeMatch) return { min: parseInt(beforeMatch[1]), max: parseInt(beforeMatch[2]) };
+  const afterMatch = text.match(/(\d{2,3})\s*[-–]\s*(\d{2,3})\s*(?:bpm|schläge)/i);
+  if(afterMatch) return { min: parseInt(afterMatch[1]), max: parseInt(afterMatch[2]) };
+  const zoneMatch = text.match(/(?:hf[- ]?zone|zone)\s*(\d)/i);
+  if(zoneMatch) return { zone: parseInt(zoneMatch[1]) };
+  return null;
+}
+
+function extractDistanceFromText(text){
+  if(!text) return null;
+  const match = text.match(/(\d+(?:[.,]\d+)?)\s*km/i);
+  return match ? parseFloat(match[1].replace(',','.')) : null;
+}
+
+function secToPaceStr(sec){
+  const m = Math.floor(sec/60), s = Math.round(sec%60);
+  return m+':'+String(s).padStart(2,'0');
+}
+
+// Baut aus dem geplanten Text eine konkrete, konservativere Alternative:
+// Pace deutlich langsamer (Erholungstempo), gleiche Distanz falls erkennbar.
+function buildEasierAlternative(dayEntry){
+  const originalText = (dayEntry.detail || '') + ' ' + (dayEntry.title || '');
+  const pace = extractPaceFromText(originalText);
+  const distance = extractDistanceFromText(dayEntry.detail) || extractDistanceFromText(dayEntry.title);
+  const distText = distance ? distance+' km' : null;
+
+  if(!pace){
+    return {
+      title: 'Lockere Alternative statt "'+dayEntry.title+'"',
+      detail: (distText ? distText+', ' : '') + 'locker nach Gefühl, deutlich unterhalb der geplanten Intensität - Gespräch sollte problemlos möglich sein (HF-Zone 2).',
+    };
+  }
+
+  // Erholungspace = Original-Pace (langsamerer Wert der Spanne) + 75-100 Sek/km
+  const easierMin = pace.maxSecPerKm + 75;
+  const easierMax = pace.maxSecPerKm + 100;
+
+  return {
+    title: 'Lockere Alternative statt "'+dayEntry.title+'"',
+    detail: (distText ? distText+' ' : '') + 'locker bei '+secToPaceStr(easierMin)+'-'+secToPaceStr(easierMax)+'/km '+
+      '(statt geplant '+secToPaceStr(pace.minSecPerKm)+'-'+secToPaceStr(pace.maxSecPerKm)+'/km), HF-Zone 2 - Gespräch sollte problemlos möglich sein.',
+  };
+}
+
+// ---------- Plan-Umsetzungs-Analyse ----------
+// Vergleicht die vergangenen geplanten Trainingstage mit den tatsächlich
+// aufgezeichneten Aktivitäten und formuliert daraus eine kurze, konkrete
+// Einschätzung (keine reine Prozentzahl, sondern ein einordnender Text).
+
+function analyzePlanAdherence(){
+  if(!trainingsplanData) return null;
+
+  const today = new Date();
+  const todayKey = toDateKey(today);
+  const activitiesByDate = groupActivitiesByDate();
+
+  let plannedTrainingDays = 0;
+  let coveredDays = 0;
+  let missedDays = [];
+  let intensiveMissed = 0;
+
+  Object.entries(trainingsplanData.dateIndex).forEach(([dateStr, dayInfo]) => {
+    if(dateStr >= todayKey) return; // nur Vergangenheit bewerten
+    // Ruhetage / Sperrzeiten zählen nicht als "geplante Trainingseinheit"
+    const isRestOrBlocked = !dayInfo.type || dayInfo.type === 'rest' || dayInfo.type === 'baustelle' || dayInfo.type === 'verwallrunde';
+    if(isRestOrBlocked) return;
+
+    plannedTrainingDays++;
+    const hasActivity = (activitiesByDate[dateStr] || []).length > 0;
+    const override = dayOverrides[dateStr];
+
+    if(hasActivity || override){
+      coveredDays++;
+    } else {
+      missedDays.push(dateStr);
+      if(INTENSIVE_TRAINING_TYPES.includes(dayInfo.type)) intensiveMissed++;
+    }
+  });
+
+  if(plannedTrainingDays === 0) return null;
+
+  const adherencePercent = Math.round((coveredDays/plannedTrainingDays)*100);
+
+  return { plannedTrainingDays, coveredDays, missedDays, intensiveMissed, adherencePercent };
+}
+
+function renderPlanAnalysisSection(){
+  const container = document.getElementById('planAnalysisSection');
+  const analysis = analyzePlanAdherence();
+
+  if(!analysis){
+    container.style.display = 'none';
+    return;
+  }
+  container.style.display = 'block';
+
+  const { plannedTrainingDays, coveredDays, missedDays, intensiveMissed, adherencePercent } = analysis;
+
+  // Kurze, konkrete Einordnung statt nur einer nackten Prozentzahl
+  let assessment;
+  if(adherencePercent >= 90){
+    assessment = 'Sehr konsequente Umsetzung - fast alle geplanten Einheiten wurden absolviert. ';
+  } else if(adherencePercent >= 75){
+    assessment = 'Solide Umsetzung mit ein paar ausgelassenen Einheiten. ';
+  } else if(adherencePercent >= 50){
+    assessment = 'Der Plan wird nur teilweise umgesetzt - mehr als jede vierte Einheit fehlt. ';
+  } else {
+    assessment = 'Große Lücke zwischen Plan und tatsächlichem Training - der Plan wird derzeit kaum umgesetzt. ';
+  }
+
+  let detailSentence;
+  if(missedDays.length === 0){
+    detailSentence = 'Von '+plannedTrainingDays+' geplanten Trainingstagen wurden bisher alle absolviert oder bewusst angepasst.';
+  } else {
+    detailSentence = 'Von '+plannedTrainingDays+' geplanten Trainingstagen fehlen '+missedDays.length+
+      (intensiveMissed>0 ? ' (davon '+intensiveMissed+' intensive Einheiten wie Tempo/Long Run)' : '') + '.';
+  }
+
+  let outlookSentence;
+  if(intensiveMissed >= 2){
+    outlookSentence = 'Da mehrere intensive Einheiten fehlen, könnte das die Vorbereitung auf dein Ziel spürbar beeinflussen - schau, ob sich das in den kommenden Wochen wieder einpendelt.';
+  } else if(missedDays.length > 0){
+    outlookSentence = 'Das ist im normalen Rahmen und dürfte die Gesamtvorbereitung kaum beeinträchtigen.';
+  } else {
+    outlookSentence = 'Weiter so - diese Konsequenz zahlt sich in der Regel spürbar aus.';
+  }
+
+  container.innerHTML =
+    '<div class="card plan-analysis-card">'+
+      '<div class="card-label" style="margin-bottom:8px;">Plan-Umsetzung</div>'+
+      '<div style="font-size:13px; line-height:1.6;">'+assessment+detailSentence+' '+outlookSentence+'</div>'+
+    '</div>';
+}
+
+function getUpcomingSuggestion(){
+  if(!latestReadinessResult || latestReadinessResult.score == null || !trainingsplanData) return null;
+  const score = latestReadinessResult.score;
+  if(score >= 65) return null; // gut/sehr gut erholt - kein Anpassungsbedarf
+
+  const today = new Date();
+  for(let dayOffset = 0; dayOffset <= 2; dayOffset++){
+    const checkDate = new Date(today);
+    checkDate.setDate(checkDate.getDate() + dayOffset);
+    const dateStr = toDateKey(checkDate);
+
+    if(dayOverrides[dateStr]) continue; // schon manuell entschieden - nicht erneut vorschlagen
+    if(dismissedSuggestions.has(dateStr)) continue; // Person hat den Vorschlag bereits weggeklickt
+    const dayInfo = trainingsplanData.dateIndex[dateStr];
+    if(!dayInfo || !INTENSIVE_TRAINING_TYPES.includes(dayInfo.type)) continue;
+
+    return {
+      dateStr,
+      dayOffset,
+      dayInfo,
+      score,
+      label: dayOffset===0 ? 'Heute' : dayOffset===1 ? 'Morgen' : 'Übermorgen',
+    };
+  }
+  return null;
+}
+
+function renderUpcomingSuggestionBanner(){
+  const existing = document.getElementById('upcomingSuggestionBanner');
+  if(existing) existing.remove();
+
+  const suggestion = getUpcomingSuggestion();
+  if(!suggestion) return;
+
+  const section = document.getElementById('sectionCalendar');
+  const banner = document.createElement('div');
+  banner.id = 'upcomingSuggestionBanner';
+  banner.className = 'upcoming-suggestion-banner';
+  banner.innerHTML =
+    '<div class="card-label" style="margin-bottom:6px;">⚠️ Vorschlag für '+suggestion.label+'</div>'+
+    '<div style="font-size:13px; line-height:1.5; margin-bottom:12px;">'+
+      'Deine aktuelle Trainingsbereitschaft liegt bei <b>'+suggestion.score+'/100</b>. '+
+      'Für '+suggestion.label.toLowerCase()+' ist "'+suggestion.dayInfo.title+'" geplant - '+
+      'das könnte angesichts der aktuellen Erholungslage intensiver sein als ideal. '+
+      'Du kannst die Einheit anpassen, falls du das möchtest.'+
+    '</div>'+
+    '<button class="toggle-btn active" onclick="openCombinedDayModal(\''+suggestion.dateStr+'\', trainingsplanData.dateIndex[\''+suggestion.dateStr+'\'], (groupActivitiesByDate()[\''+suggestion.dateStr+'\']||[]))">Einheit ansehen &amp; anpassen</button>'+
+    '<button class="toggle-btn" onclick="dismissSuggestion(\''+suggestion.dateStr+'\')" style="margin-left:8px;">Ignorieren</button>';
+
+  section.insertBefore(banner, section.firstChild.nextSibling);
+}
+
+function dismissSuggestion(dateStr){
+  dismissedSuggestions.add(dateStr);
+  const el = document.getElementById('upcomingSuggestionBanner');
+  if(el) el.remove();
+}
+
+// Baut eine einzelne Tages-Kachel (geplante Einheit + absolvierte Aktivität(en) +
+// Zukunfts-/Heute-/Verpasst-Markierung). Wird von Monats-, Wochen- und Tagesansicht
+// gemeinsam genutzt, damit alle drei Ansichten exakt dieselben Informationen zeigen.
+function buildCombinedDayCell(dateStr, cellDate, activitiesByDate){
+  const dayInfo = trainingsplanData ? trainingsplanData.dateIndex[dateStr] : null;
+  const override = dayOverrides[dateStr];
+  const effective = override || dayInfo;
+  const dayActivities = activitiesByDate[dateStr] || [];
+  const today = new Date();
+  const in3Days = new Date(today); in3Days.setDate(in3Days.getDate()+2);
+
+  const cell = document.createElement('div');
+  cell.className = 'calendar-day combined-day';
+
+  if(cellDate >= new Date(today.getFullYear(),today.getMonth(),today.getDate()) && cellDate <= in3Days){
+    cell.classList.add('near-future');
+  }
+  if(isSameDate(cellDate, today)) cell.classList.add('is-today');
+
+  const isPast = cellDate < new Date(today.getFullYear(),today.getMonth(),today.getDate());
+  const isRestOrBlocked = !dayInfo || !dayInfo.type || dayInfo.type==='rest' || dayInfo.type==='baustelle' || dayInfo.type==='verwallrunde';
+  if(isPast && dayInfo && !isRestOrBlocked && dayActivities.length===0 && !override){
+    cell.classList.add('missed-day');
+  }
+
+  const dayNumber = cellDate.getDate();
+  let innerHtml = '<div class="calendar-day-number">'+dayNumber+'</div>';
+
+  if(effective && trainingsplanData){
+    const style = trainingsplanData.typeStyles[effective.type] || {};
+    cell.style.borderColor = style.border || 'var(--panel-border)';
+    cell.style.background = 'color-mix(in srgb, ' + (style.bg || '#141b18') + ' 12%, var(--panel))';
+    if(dayInfo && dayInfo.type === 'baustelle' || dayInfo && dayInfo.type === 'verwallrunde'){
+      cell.classList.add('blocked');
+    }
+    innerHtml += '<div class="calendar-day-icon">'+(style.icon||'○')+'</div>'+
+      '<div class="calendar-day-type">'+(style.label||effective.type)+'</div>';
+  }
+
+  if(dayActivities.length > 0){
+    innerHtml += '<div class="calendar-day-actual">'+buildDayIconsHtml(dayActivities)+'</div>';
+  }
+
+  cell.innerHTML = innerHtml;
+  cell.onclick = () => openCombinedDayModal(dateStr, dayInfo, dayActivities);
+  return cell;
+}
+
+function renderCalendarMonth(){
+  // Läuft jetzt auch, wenn nur Aktivitäten (aber noch kein Plan) geladen sind -
+  // die kombinierte Ansicht soll beides unabhängig voneinander zeigen können.
+  if(!trainingsplanData && allActivitiesData.length===0) return;
+  document.getElementById('calendarContent').style.display = 'block';
+
+  const year = calendarViewDate.getFullYear();
+  const month = calendarViewDate.getMonth(); // 0-basiert
+  document.getElementById('calendarMonthLabel').textContent = MONTH_NAMES[month] + ' ' + year;
+
+  const firstOfMonth = new Date(year, month, 1);
+  const startWeekday = (firstOfMonth.getDay() + 6) % 7; // Montag=0
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+
+  const grid = document.getElementById('calendarGrid');
+  grid.className = 'calendar-grid';
+  grid.innerHTML = '';
+
+  WEEKDAY_LABELS.forEach(lbl => {
+    const el = document.createElement('div');
+    el.className = 'calendar-weekday-label';
+    el.textContent = lbl;
+    grid.appendChild(el);
+  });
+
+  for(let i=0; i<startWeekday; i++){
+    const empty = document.createElement('div');
+    empty.className = 'calendar-day empty';
+    grid.appendChild(empty);
+  }
+
+  const activitiesByDate = groupActivitiesByDate();
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    const cellDate = new Date(year, month, d);
+    grid.appendChild(buildCombinedDayCell(dateStr, cellDate, activitiesByDate));
+  }
+
+  renderCalendarLegend();
+  renderUpcomingSuggestionBanner();
+  renderPlanAnalysisSection();
+}
+
+// ---------- Wochenansicht ----------
+function renderCalendarWeek(){
+  if(!trainingsplanData && allActivitiesData.length===0) return;
+  document.getElementById('calendarContent').style.display = 'block';
+
+  const monday = getMondayOfWeek(calendarViewDate);
+  const sunday = new Date(monday); sunday.setDate(sunday.getDate()+6);
+  const fmtShort = x => x.getDate()+'.'+(x.getMonth()+1)+'.';
+  document.getElementById('calendarMonthLabel').textContent = fmtShort(monday)+' – '+fmtShort(sunday);
+
+  const grid = document.getElementById('calendarGrid');
+  grid.className = 'calendar-grid'; // 7 Spalten, wie Monatsansicht
+  grid.innerHTML = '';
+
+  WEEKDAY_LABELS.forEach(lbl => {
+    const el = document.createElement('div');
+    el.className = 'calendar-weekday-label';
+    el.textContent = lbl;
+    grid.appendChild(el);
+  });
+
+  const activitiesByDate = groupActivitiesByDate();
+  for(let i=0; i<7; i++){
+    const cellDate = new Date(monday); cellDate.setDate(cellDate.getDate()+i);
+    const dateStr = toDateKey(cellDate);
+    grid.appendChild(buildCombinedDayCell(dateStr, cellDate, activitiesByDate));
+  }
+
+  renderCalendarLegend();
+  renderUpcomingSuggestionBanner();
+  renderPlanAnalysisSection();
+}
+
+// ---------- Tagesansicht ----------
+// Zeigt den einzelnen Tag ausführlich (wie das Modal, aber direkt eingebettet),
+// mit denselben Infos wie beim Klick auf eine Kachel in Monats-/Wochenansicht.
+function renderCalendarDay(){
+  if(!trainingsplanData && allActivitiesData.length===0) return;
+  document.getElementById('calendarContent').style.display = 'block';
+
+  const dateStr = toDateKey(calendarViewDate);
+  const isToday = isSameDate(calendarViewDate, new Date());
+  const label = calendarViewDate.toLocaleDateString('de-DE', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+  document.getElementById('calendarMonthLabel').textContent = (isToday ? 'Heute · ' : '') + label;
+
+  const dayInfo = trainingsplanData ? trainingsplanData.dateIndex[dateStr] : null;
+  const override = dayOverrides[dateStr];
+  const effective = override || dayInfo;
+  const dayActivities = groupActivitiesByDate()[dateStr] || [];
+
+  const container = document.getElementById('calendarDayView');
+  let html = '<div class="activity-day-view-card">';
+
+  if(effective && trainingsplanData){
+    const style = trainingsplanData.typeStyles[effective.type] || {};
+    html += '<div class="week-day-row">';
+    html += '<div class="week-day-icon">'+(style.icon||'○')+'</div>';
+    html += '<div class="week-day-body">';
+    html += '<div class="week-day-title">📅 '+effective.title+(override?' <span style="color:var(--accent); font-size:11px;">(angepasst)</span>':'')+'</div>';
+    html += '<div class="week-day-detail">'+effective.detail+'</div>';
+    html += '</div></div>';
+  } else {
+    html += '<div class="activity-day-view-empty">Keine Einheit für diesen Tag im Trainingsplan hinterlegt.</div>';
+  }
+
+  if(dayActivities.length > 0){
+    dayActivities.forEach(act => {
+      const sport = safe(act, 'activityType.typeKey');
+      const distanceKm = safe(act,'distance') ? (safe(act,'distance')/1000).toFixed(2)+' km' : '–';
+      const duration = fmtSeconds(safe(act,'duration'));
+      const avgHr = safe(act,'averageHR');
+      const startLocal = safe(act,'startTimeLocal','') || '';
+      const timeOfDay = startLocal.split(' ')[1] || '';
+      const actId = safe(act, 'activityId');
+
+      html += '<div class="week-day-row" style="cursor:pointer;" onclick="openActivityDetailView('+actId+')">';
+      html += '<div class="week-day-icon">'+sportIconFor(sport)+'</div>';
+      html += '<div class="week-day-meta">'+timeOfDay.slice(0,5)+'</div>';
+      html += '<div class="week-day-body">';
+      html += '<div class="week-day-title">✅ '+sportLabelFor(sport)+'</div>';
+      html += '<div class="week-day-detail">'+[distanceKm, duration, avgHr?Math.round(avgHr)+' bpm ⌀':''].filter(Boolean).join(' · ')+' · <span style="color:var(--accent);">Details ansehen →</span></div>';
+      html += '</div></div>';
+    });
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+  container.onclick = (evt) => {
+    // Klick auf die Zusammenfassungskarte selbst (nicht auf eine Aktivitätszeile) öffnet das volle Detail-Modal
+    if(evt.target.closest('.week-day-row')) return;
+    openCombinedDayModal(dateStr, dayInfo, dayActivities);
+  };
+
+  renderCalendarLegend();
+  renderUpcomingSuggestionBanner();
+  renderPlanAnalysisSection();
+}
+
+function renderCalendarLegend(){
+  const legend = document.getElementById('calendarLegend');
+  if(!trainingsplanData){
+    legend.innerHTML = '';
+    return;
+  }
+  const usedTypes = new Set();
+  Object.values(trainingsplanData.dateIndex).forEach(d => usedTypes.add(d.type));
+
+  legend.innerHTML = Array.from(usedTypes).map(type => {
+    const style = trainingsplanData.typeStyles[type] || {};
+    return '<span>'+(style.icon||'○')+' '+(style.label||type)+'</span>';
+  }).join('');
+}
+
+// Zeigt einen einzelnen Tag mit geplanter Einheit UND absolvierter Aktivität.
+// Der Tausch-Button erscheint NUR, wenn für diesen Tag tatsächlich ein Vorschlag
+// vorliegt (niedrige Bereitschaft + intensive Einheit geplant) - nicht generell.
+function openCombinedDayModal(dateStr, dayInfo, dayActivities){
+  const box = document.getElementById('weekModalBox');
+  const override = dayOverrides[dateStr];
+  const effective = override || dayInfo;
+  const dateObj = new Date(dateStr+'T00:00:00');
+  const dateLabel = dateObj.toLocaleDateString('de-DE', {weekday:'long', day:'2-digit', month:'2-digit', year:'numeric'});
+
+  let html = '<button class="modal-close-btn" onclick="closeWeekModal()">✕</button>';
+  html += '<div class="card-label">'+dateLabel+'</div>';
+
+  if(dayInfo){
+    const week = trainingsplanData.weeks.find(w => w.week === dayInfo.week);
+    const phase = week ? trainingsplanData.phases[week.phase] : null;
+    if(phase) html += '<div style="font-size:11px; color:var(--ink-dim); margin-bottom:10px;">Woche '+dayInfo.week+' · '+phase.emoji+' '+phase.name+'</div>';
+  }
+
+  // Geplante Einheit
+  if(effective){
+    const style = trainingsplanData ? (trainingsplanData.typeStyles[effective.type] || {}) : {};
+    html += '<div class="combined-modal-section">';
+    html += '<div class="card-label" style="margin-bottom:8px;">📅 Geplant'+(override?' <span style="color:var(--accent);">(angepasst)</span>':'')+'</div>';
+    html += '<div class="week-day-row">';
+    html += '<div class="week-day-icon">'+(style.icon||'○')+'</div>';
+    html += '<div class="week-day-body">';
+    html += '<div class="week-day-title">'+effective.title+'</div>';
+    html += '<div class="week-day-detail">'+effective.detail+'</div>';
+    html += '</div></div>';
+
+    // Tausch-Button NUR anzeigen, wenn für diesen Tag wirklich ein Vorschlag greift
+    // (niedrige Bereitschaft + intensive Einheit) ODER bereits ein Tausch aktiv ist
+    // (damit man ihn auch wieder rückgängig machen kann).
+    const suggestion = getUpcomingSuggestion();
+    const suggestionAppliesHere = suggestion && suggestion.dateStr === dateStr;
+
+    if(suggestionAppliesHere || override){
+      if(suggestionAppliesHere && !override){
+        const alternative = buildEasierAlternative(dayInfo);
+        html += '<div class="readiness-recommendation" style="margin-top:12px;">';
+        html += '⚠️ Deine Trainingsbereitschaft liegt bei <b>'+suggestion.score+'/100</b>. Empfohlene Alternative:<br>';
+        html += '<b>'+alternative.detail+'</b>';
+        html += '</div>';
+        html += '<div class="week-swap-row" style="margin-top:10px;">';
+        html += '<button class="swap-btn" onclick="applyEasierAlternative(\''+dateStr+'\')">Alternative übernehmen</button>';
+        html += '<button class="swap-btn" onclick="dismissSuggestion(\''+dateStr+'\'); closeWeekModal();">Bei geplanter Einheit bleiben</button>';
+        html += '</div>';
+      } else if(override){
+        html += '<div class="week-swap-row" style="margin-top:10px;">';
+        html += '<button class="swap-btn active" onclick="setDayOverride(\''+dateStr+'\', null)">Zur ursprünglich geplanten Einheit zurück</button>';
+        html += '</div>';
+      }
+    }
+    html += '</div>';
+  } else {
+    html += '<div class="combined-modal-section"><div style="color:var(--ink-dim); font-size:13px;">Keine Einheit für diesen Tag im Trainingsplan hinterlegt.</div></div>';
+  }
+
+  // Absolvierte Aktivität(en)
+  if(dayActivities && dayActivities.length > 0){
+    html += '<div class="combined-modal-section">';
+    html += '<div class="card-label" style="margin-bottom:8px;">✅ Tatsächlich absolviert</div>';
+    dayActivities.forEach(act => {
+      const sport = safe(act, 'activityType.typeKey');
+      const distanceKm = safe(act,'distance') ? (safe(act,'distance')/1000).toFixed(2)+' km' : '–';
+      const duration = fmtSeconds(safe(act,'duration'));
+      const avgHr = safe(act,'averageHR');
+      const startLocal = safe(act,'startTimeLocal','') || '';
+      const timeOfDay = startLocal.split(' ')[1] || '';
+      const actId = safe(act, 'activityId');
+
+      html += '<div class="week-day-row" style="cursor:pointer;" onclick="openActivityDetailView('+actId+')">';
+      html += '<div class="week-day-icon">'+sportIconFor(sport)+'</div>';
+      html += '<div class="week-day-meta">'+timeOfDay.slice(0,5)+'</div>';
+      html += '<div class="week-day-body">';
+      html += '<div class="week-day-title">'+sportLabelFor(sport)+'</div>';
+      html += '<div class="week-day-detail">'+[distanceKm, duration, avgHr?Math.round(avgHr)+' bpm ⌀':''].filter(Boolean).join(' · ')+' · <span style="color:var(--accent);">Details ansehen →</span></div>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  } else if(dayInfo && new Date(dateStr) < new Date()){
+    html += '<div class="combined-modal-section"><div style="color:var(--ink-dim); font-size:13px;">✅ Tatsächlich absolviert: keine Aktivität aufgezeichnet.</div></div>';
+  }
+
+  box.innerHTML = html;
+  window.dayActivitiesForModal = dayActivities; // für den "zurücksetzen"-Reload-Klick oben
+  document.getElementById('weekModalOverlay').classList.add('active');
+}
+
+// Übernimmt die berechnete lockere Alternative als Tages-Override
+function applyEasierAlternative(dateStr){
+  const dayInfo = trainingsplanData.dateIndex[dateStr];
+  if(!dayInfo) return;
+  const alternative = buildEasierAlternative(dayInfo);
+
+  dayOverrides[dateStr] = {
+    type: 'recovery',
+    title: alternative.title,
+    detail: alternative.detail,
+  };
+  persistDayOverrides();
+  renderCalendarMonth();
+  openCombinedDayModal(dateStr, dayInfo, window.dayActivitiesForModal || []);
+}
+
+function resolveFullDateForWeek(dayEntry, dateIndex){
+  // Findet den vollständigen Datumsschlüssel, der zu diesem Tag-Eintrag passt
+  for(const [key, val] of Object.entries(dateIndex)){
+    if(val.day === dayEntry.day && val.date === dayEntry.date && val.title === dayEntry.title){
+      return key;
+    }
+  }
+  return null;
+}
+
+const DAY_OVERRIDES_STORAGE_KEY = 'garmin_dashboard_day_overrides';
+
+async function persistDayOverrides(){
+  localStorage.setItem(DAY_OVERRIDES_STORAGE_KEY, JSON.stringify(dayOverrides));
+  const config = getGithubConfig();
+  if(config){
+    try{
+      await saveToGithub(config, 'data/day_overrides.json', dayOverrides, 'Tages-Anpassung aktualisiert');
+    }catch(e){
+      console.log('Tages-Anpassung konnte nicht in GitHub gespeichert werden (bleibt lokal erhalten):', e);
+    }
+  }
+}
+
+async function restoreDayOverrides(){
+  const config = getGithubConfig();
+  if(config){
+    try{
+      const remote = await fetchFromGithub(config, 'data/day_overrides.json');
+      Object.assign(dayOverrides, remote);
+      localStorage.setItem(DAY_OVERRIDES_STORAGE_KEY, JSON.stringify(dayOverrides));
+      return;
+    }catch(e){
+      console.log('Keine Tages-Anpassungen in GitHub gefunden, versuche lokalen Cache.', e);
+    }
+  }
+  try{
+    const raw = localStorage.getItem(DAY_OVERRIDES_STORAGE_KEY);
+    if(raw) Object.assign(dayOverrides, JSON.parse(raw));
+  }catch(e){ /* kein lokaler Cache vorhanden - ist ok, dayOverrides bleibt leer */ }
+}
+
+function setDayOverride(dateStr, mode){
+  if(!dateStr) return;
+  const original = trainingsplanData.dateIndex[dateStr];
+
+  if(mode === null){
+    delete dayOverrides[dateStr];
+  } else if(mode === 'locker'){
+    dayOverrides[dateStr] = {
+      type: 'recovery',
+      title: 'Angepasst: Locker statt ' + (original ? original.title : 'geplanter Einheit'),
+      detail: 'Manuell auf lockere Variante umgestellt (z.B. wegen niedriger Trainingsbereitschaft).',
+    };
+  } else if(mode === 'intensiv'){
+    dayOverrides[dateStr] = {
+      type: original ? original.type : 'tempo',
+      title: 'Angepasst: Intensiver (' + (original ? original.title : 'Zusatzreiz') + ')',
+      detail: 'Manuell verschärft, da du dich sehr gut erholt fühlst - z.B. härteres Tempo oder mehr Wiederholungen.',
+      intensified: true,
+    };
+  }
+
+  persistDayOverrides();
+  renderCalendarMonth();
+  const dayActivities = (groupActivitiesByDate()[dateStr]) || [];
+  openCombinedDayModal(dateStr, original, dayActivities);
+}
+
+function closeWeekModal(){
+  document.getElementById('weekModalOverlay').classList.remove('active');
+}
+function closeWeekModalOnOverlay(event){
+  if(event.target.id === 'weekModalOverlay') closeWeekModal();
+}
+
+// ---------- GitHub-Integration ----------
+// Liest die Garmin-Daten direkt aus deinem privaten GitHub-Repository, per
+// GitHub API mit einem Personal Access Token. Der Token wird nur lokal in
+// deinem Browser gespeichert (localStorage), nirgendwo sonst.
+
+const GITHUB_CONFIG_KEY = 'garmin_dashboard_github_config';
+
+function getGithubConfig(){
+  try{
+    const raw = localStorage.getItem(GITHUB_CONFIG_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+function saveGithubConfig(config){
+  localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
+}
+
+async function fetchFromGithub(config, path){
+  const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`;
+  const res = await fetch(url, {
+    headers: {
+      'Authorization': `Bearer ${config.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+    },
+    cache: 'no-store',
+  });
+  if(!res.ok){
+    throw new Error(`GitHub API Fehler (${res.status}): ${res.statusText}`);
+  }
+  const json = await res.json();
+
+  // GitHubs Contents-API liefert Base64-Inhalt nur bis 1 MB Dateigröße.
+  // Größere Dateien (z.B. Sekunden-für-Sekunde-Verlauf langer Läufe) kommen
+  // ohne "content"-Feld zurück - dann über die Raw-API laden, die kein Limit hat.
+  if(json.content){
+    const decoded = decodeURIComponent(escape(atob(json.content)));
+    return JSON.parse(decoded);
+  }
+
+  if(json.download_url){
+    const rawRes = await fetch(json.download_url, { cache: 'no-store' });
+    if(!rawRes.ok) throw new Error(`Datei zu groß und Raw-Abruf fehlgeschlagen (${rawRes.status})`);
+    return await rawRes.json();
+  }
+
+  throw new Error('Datei enthält keinen lesbaren Inhalt (evtl. zu groß oder leer).');
+}
+
+// Schreibt Daten in eine Datei in deinem GitHub-Repository (erstellt sie, falls sie
+// noch nicht existiert, oder überschreibt sie). GitHub verlangt beim Überschreiben
+// den SHA-Hash der aktuellen Version - den holen wir uns vorher automatisch.
+async function saveToGithub(config, path, dataObj, commitMessage){
+  const url = `https://api.github.com/repos/${config.owner}/${config.repo}/contents/${path}`;
+
+  // Aktuellen SHA-Hash holen, falls die Datei schon existiert (nötig zum Überschreiben)
+  let existingSha = null;
+  try{
+    const existingRes = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${config.token}`, 'Accept': 'application/vnd.github.v3+json' },
+      cache: 'no-store',
+    });
+    if(existingRes.ok){
+      const existingJson = await existingRes.json();
+      existingSha = existingJson.sha || null;
+    }
+  }catch(e){ /* Datei existiert vermutlich noch nicht - das ist ok, wird dann neu erstellt */ }
+
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataObj, null, 2))));
+
+  const putRes = await fetch(url, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${config.token}`,
+      'Accept': 'application/vnd.github.v3+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      message: commitMessage || ('Dashboard-Update: ' + path),
+      content: content,
+      ...(existingSha ? { sha: existingSha } : {}),
+    }),
+  });
+
+  if(!putRes.ok){
+    const errText = await putRes.text();
+    throw new Error(`GitHub-Speichern fehlgeschlagen (${putRes.status}): ${errText}`);
+  }
+  return await putRes.json();
+}
+
+function showGithubSetupForm(){
+  const section = document.getElementById('sectionGithubSetup');
+  section.style.display = 'block';
+}
+
+// ---------- Gesundheitsdaten-Historie (Jahr/Monat/Woche/Tag) ----------
+// Lädt mehrere daily_YYYY-MM-DD.json Dateien aus GitHub (die durch den
+// automatischen Import + Backfill entstehen) und stellt sie als kombinierten,
+// auswählbaren Verlaufsgraphen dar - analog zum Multi-Chart bei Aktivitäten.
+
+const HEALTH_METRIC_DEFS = [
+  { key: 'sleepScore', label: 'Schlaf-Score', unit: 'Punkte', color: 'var(--zone1)',
+    extract: d => safe(d, 'sleep.dailySleepDTO.sleepScores.overall.value') },
+  { key: 'hrv', label: 'HRV (Nacht-⌀)', unit: 'ms', color: 'var(--accent)',
+    extract: d => safe(d, 'hrv.hrvSummary.lastNightAvg') },
+  { key: 'rhr', label: 'Ruhepuls', unit: 'bpm', color: 'var(--zone5)',
+    extract: d => safe(d, 'resting_hr.allMetrics.metricsMap.WELLNESS_RESTING_HEART_RATE.0.value') ?? safe(d,'heart_rates.restingHeartRate') },
+  { key: 'bodyBattery', label: 'Body Battery (geladen)', unit: '', color: 'var(--zone2)',
+    extract: d => safe(d, 'body_battery.0.charged') },
+  { key: 'stress', label: 'Stress (⌀)', unit: '/ 100', color: 'var(--zone4)',
+    extract: d => safe(d, 'stress.avgStressLevel') },
+  { key: 'vo2max', label: 'VO2max', unit: 'ml/kg/min', color: 'var(--zone3)',
+    extract: d => safe(d, 'max_metrics.0.generic.vo2MaxPreciseValue') ?? safe(d, 'training_status.mostRecentVO2Max.generic.vo2MaxPreciseValue') },
+  { key: 'sleepHours', label: 'Schlafdauer', unit: 'Std', color: 'var(--zone1)',
+    extract: d => { const s = safe(d,'sleep.dailySleepDTO.sleepTimeSeconds'); return s!=null ? Math.round((s/3600)*10)/10 : null; } },
+  { key: 'steps', label: 'Schritte', unit: '', color: 'var(--ink-dim)',
+    extract: d => { const arr = safe(d,'steps'); return Array.isArray(arr) ? arr.reduce((s,x)=>s+(safe(x,'steps',0)||0),0) : null; } },
+];
+
+// ---------- Metrik-Detail-Modal (Tag/Woche/Monat/Jahr für EINE Kennzahl) ----------
+// Klick auf eine Kennzahl-Kachel (z.B. VO2max) öffnet dieses Modal, das NUR diese
+// eine Metrik über einen wählbaren Zeitraum zeigt, mit echten Achsenbeschriftungen.
+// Wichtig für die Performance: beim Ziehen/Hovern wird NICHT das komplette SVG neu
+// gezeichnet, sondern nur eine dünne Cursor-Linie per direktem Attribut-Update bewegt -
+// das komplette Neuzeichnen bei jedem Mausevent war die Ursache des Ruckelns vorher.
+
+let currentMetricKey = null;
+let currentMetricLabel = null;
+let metricModalRange = 'day'; // 'day' | 'week' | 'month' | 'year'
+let metricModalPeriodDate = new Date();
+let metricModalDataCache = {}; // { 'YYYY-MM-DD': dailyDataObject }
+let metricModalSeries = []; // aktuell angezeigte Datenpunkte [{dateKey, value}]
+let metricModalGeometry = null; // { width, height, padding, minV, maxV, points: [{x,y,dateKey,value}] }
+
+function openMetricHistoryModal(metricKey, label){
+  currentMetricKey = metricKey;
+  currentMetricLabel = label;
+  metricModalRange = 'day';
+  metricModalPeriodDate = new Date();
+  document.getElementById('metricModalTitle').textContent = label;
+  ['day','week','month','year'].forEach(r=>{
+    document.getElementById('metricRangeBtn'+r.charAt(0).toUpperCase()+r.slice(1)).classList.toggle('active', r==='day');
+  });
+  document.getElementById('metricModalOverlay').classList.add('active');
+  loadAndRenderMetricHistory();
+}
+function closeMetricModal(){
+  document.getElementById('metricModalOverlay').classList.remove('active');
+}
+function closeMetricModalOnOverlay(event){
+  if(event.target.id === 'metricModalOverlay') closeMetricModal();
+}
+
+function setMetricRange(range){
+  metricModalRange = range;
+  ['day','week','month','year'].forEach(r=>{
+    document.getElementById('metricRangeBtn'+r.charAt(0).toUpperCase()+r.slice(1)).classList.toggle('active', r===range);
+  });
+  loadAndRenderMetricHistory();
+}
+
+function changeMetricPeriod(delta){
+  if(metricModalRange==='day') metricModalPeriodDate.setDate(metricModalPeriodDate.getDate()+delta);
+  else if(metricModalRange==='week') metricModalPeriodDate.setDate(metricModalPeriodDate.getDate()+delta*7);
+  else if(metricModalRange==='month') metricModalPeriodDate.setMonth(metricModalPeriodDate.getMonth()+delta);
+  else metricModalPeriodDate.setFullYear(metricModalPeriodDate.getFullYear()+delta);
+  loadAndRenderMetricHistory();
+}
+
+function getMetricDateRange(){
+  const d = new Date(metricModalPeriodDate);
+  if(metricModalRange === 'day'){
+    return { start: new Date(d), end: new Date(d) };
+  }
+  if(metricModalRange === 'week'){
+    const monday = getMondayOfWeek(d);
+    const sunday = new Date(monday); sunday.setDate(sunday.getDate()+6);
+    return { start: monday, end: sunday };
+  }
+  if(metricModalRange === 'month'){
+    return { start: new Date(d.getFullYear(), d.getMonth(), 1), end: new Date(d.getFullYear(), d.getMonth()+1, 0) };
+  }
+  return { start: new Date(d.getFullYear(), 0, 1), end: new Date(d.getFullYear(), 11, 31) };
+}
+
+function formatMetricPeriodLabel(){
+  const { start, end } = getMetricDateRange();
+  if(metricModalRange === 'day') return start.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'});
+  if(metricModalRange === 'week'){
+    const fmt = x => x.getDate()+'.'+(x.getMonth()+1)+'.';
+    return fmt(start)+' – '+fmt(end);
+  }
+  if(metricModalRange === 'month') return MONTH_NAMES[start.getMonth()]+' '+start.getFullYear();
+  return String(start.getFullYear());
+}
+
+async function loadAndRenderMetricHistory(){
+  document.getElementById('metricPeriodLabel').textContent = formatMetricPeriodLabel();
+  const statusEl = document.getElementById('metricModalStatus');
+  const config = getGithubConfig();
+  if(!config){
+    statusEl.textContent = 'Keine GitHub-Verbindung eingerichtet - Historie kann nicht geladen werden.';
+    metricModalSeries = [];
+    renderMetricChart();
+    return;
+  }
+
+  const { start, end } = getMetricDateRange();
+  const dateKeys = [];
+  for(let d=new Date(start); d<=end; d.setDate(d.getDate()+1)){
+    dateKeys.push(toDateKey(d));
+  }
+  const todayKey = toDateKey(new Date());
+  const relevantKeys = dateKeys.filter(k => k <= todayKey);
+
+  const missingKeys = relevantKeys.filter(k => !(k in metricModalDataCache));
+  if(missingKeys.length > 0){
+    statusEl.textContent = 'Lade '+missingKeys.length+' Tag(e) …';
+    await Promise.all(missingKeys.map(async k => {
+      try{
+        metricModalDataCache[k] = await fetchFromGithub(config, 'data/daily_'+k+'.json');
+      }catch(e){
+        metricModalDataCache[k] = null;
+      }
+    }));
+  }
+
+  const metricDef = HEALTH_METRIC_DEFS.find(m => m.key === currentMetricKey);
+  metricModalSeries = relevantKeys
+    .map(k => ({ dateKey: k, value: metricModalDataCache[k] ? metricDef.extract(metricModalDataCache[k]) : null }))
+    .filter(p => p.value != null && !isNaN(p.value));
+
+  const availableCount = relevantKeys.filter(k => metricModalDataCache[k]).length;
+  statusEl.textContent = metricModalSeries.length+' Datenpunkt(e) im Zeitraum'+
+    (availableCount < relevantKeys.length ? ' (weitere Tage werden schrittweise automatisch nachgeholt)' : '');
+
+  renderMetricChart();
+}
+
+// Zeichnet den Graphen EINMAL komplett neu (bei Zeitraumwechsel), inkl. Achsen.
+// Für Hover/hover wird NUR noch der Cursor bewegt, nicht neu gezeichnet (siehe
+// setupMetricChartHover) - das ist der entscheidende Performance-Unterschied.
+function renderMetricChart(){
+  const svg = document.getElementById('metricChartSvg');
+  if(!svg) return;
+
+  const width = 700, height = 280;
+  const padding = { top: 16, right: 16, bottom: 28, left: 46 };
+  const plotW = width - padding.left - padding.right;
+  const plotH = height - padding.top - padding.bottom;
+
+  if(metricModalSeries.length === 0){
+    svg.innerHTML = `<text x="${width/2}" y="${height/2}" text-anchor="middle" class="metric-axis-label" font-size="13">Keine Daten für diesen Zeitraum</text>`;
+    metricModalGeometry = null;
+    return;
+  }
+
+  const values = metricModalSeries.map(p=>p.value);
+  const minV = Math.min(...values), maxV = Math.max(...values);
+  const range = (maxV-minV) || Math.max(1, Math.abs(maxV)*0.1) || 1;
+  // etwas Luft ober-/unterhalb, damit Punkte am Rand nicht abgeschnitten wirken
+  const yMin = minV - range*0.1, yMax = maxV + range*0.1, yRange = (yMax-yMin)||1;
+
+  const points = metricModalSeries.map((p,i) => {
+    const x = padding.left + (metricModalSeries.length===1 ? plotW/2 : (i/(metricModalSeries.length-1)) * plotW);
+    const y = padding.top + plotH - ((p.value-yMin)/yRange)*plotH;
+    return { x, y, dateKey: p.dateKey, value: p.value };
+  });
+  metricModalGeometry = { width, height, padding, plotW, plotH, yMin, yMax, points };
+
+  // Y-Achse: 4 horizontale Gitterlinien mit Werte-Beschriftung
+  let axisHtml = '';
+  const ySteps = 4;
+  for(let s=0; s<=ySteps; s++){
+    const v = yMin + (yRange*s/ySteps);
+    const y = padding.top + plotH - (s/ySteps)*plotH;
+    axisHtml += `<line x1="${padding.left}" y1="${y.toFixed(1)}" x2="${width-padding.right}" y2="${y.toFixed(1)}" class="metric-axis-line"/>`;
+    axisHtml += `<text x="${padding.left-6}" y="${(y+3).toFixed(1)}" text-anchor="end" class="metric-axis-label">${Math.round(v*10)/10}</text>`;
+  }
+
+  // X-Achse: bis zu 6 Datumsbeschriftungen, gleichmäßig verteilt
+  const xLabelCount = Math.min(6, metricModalSeries.length);
+  for(let s=0; s<xLabelCount; s++){
+    const idx = Math.round(s*(metricModalSeries.length-1)/Math.max(1,xLabelCount-1));
+    const p = points[idx];
+    const d = new Date(p.dateKey+'T00:00:00');
+    const label = metricModalRange==='year' ? MONTH_NAMES[d.getMonth()].slice(0,3) : d.getDate()+'.'+(d.getMonth()+1)+'.';
+    axisHtml += `<text x="${p.x.toFixed(1)}" y="${height-8}" text-anchor="middle" class="metric-axis-label">${label}</text>`;
+  }
+
+  const polyPoints = points.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  const dotsHtml = points.length <= 60 // bei vielen Punkten (Jahresansicht) keine einzelnen Punkte, wird zu voll
+    ? points.map(p=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="var(--accent)"/>`).join('')
+    : '';
+
+  svg.innerHTML = axisHtml +
+    `<polyline points="${polyPoints}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>` +
+    dotsHtml +
+    `<line id="metricHoverLine" x1="0" y1="${padding.top}" x2="0" y2="${padding.top+plotH}" stroke="var(--ink-dim)" stroke-width="1" stroke-dasharray="3,3" style="display:none;"/>` +
+    `<circle id="metricHoverDot" r="4" fill="var(--accent)" style="display:none;"/>`;
+
+  setupMetricChartHover(svg);
+  document.getElementById('metricHoverInfo').textContent = 'Über den Graphen fahren, um genaue Werte zu sehen';
+}
+
+// Bewegt bei Mausbewegung NUR die vorhandene Hover-Linie/den Punkt (per direktem
+// Attribut-Set, kein innerHTML-Neuaufbau) - dadurch bleibt das Ziehen flüssig,
+// selbst bei vielen Datenpunkten (z.B. Jahresansicht mit 365 Punkten).
+function setupMetricChartHover(svg){
+  if(!metricModalGeometry) return;
+  const hoverLine = document.getElementById('metricHoverLine');
+  const hoverDot = document.getElementById('metricHoverDot');
+  const infoEl = document.getElementById('metricHoverInfo');
+  const { points, padding, plotW } = metricModalGeometry;
+
+  function updateHover(evt){
+    const rect = svg.getBoundingClientRect();
+    const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+    // Skalierung berücksichtigen: die SVG viewBox (700px) vs. tatsächliche Bildschirmbreite
+    const scaleX = 700 / rect.width;
+    const svgX = (clientX - rect.left) * scaleX;
+
+    // Nächstgelegenen Datenpunkt finden (einfache lineare Suche reicht bei <400 Punkten locker)
+    let closest = points[0], closestDist = Infinity;
+    points.forEach(p => {
+      const dist = Math.abs(p.x - svgX);
+      if(dist < closestDist){ closestDist = dist; closest = p; }
+    });
+
+    hoverLine.setAttribute('x1', closest.x.toFixed(1));
+    hoverLine.setAttribute('x2', closest.x.toFixed(1));
+    hoverLine.style.display = 'block';
+    hoverDot.setAttribute('cx', closest.x.toFixed(1));
+    hoverDot.setAttribute('cy', closest.y.toFixed(1));
+    hoverDot.style.display = 'block';
+
+    const d = new Date(closest.dateKey+'T00:00:00');
+    const dateLabel = d.toLocaleDateString('de-DE', {weekday:'short', day:'2-digit', month:'2-digit', year:'numeric'});
+    const metricDef = HEALTH_METRIC_DEFS.find(m => m.key === currentMetricKey);
+    infoEl.innerHTML = '<b>'+dateLabel+':</b> '+closest.value+' '+(metricDef ? metricDef.unit : '');
+  }
+
+  // passive:true erlaubt dem Browser, Scroll-Performance nicht durch dieses Event
+  // zu blockieren - wichtig, damit die Seite insgesamt flüssig bleibt.
+  svg.onmousemove = updateHover;
+  svg.ontouchmove = (evt) => { updateHover(evt); evt.preventDefault(); };
+  svg.onmouseleave = () => { hoverLine.style.display='none'; hoverDot.style.display='none'; infoEl.textContent='Über den Graphen fahren, um genaue Werte zu sehen'; };
+}
+
+async function loadFromGithubOrPrompt(){
+  const config = getGithubConfig();
+  if(!config || !config.token || !config.owner || !config.repo){
+    showGithubSetupForm();
+    return;
+  }
+
+  try{
+    const dailyData = await fetchFromGithub(config, 'data/daily_latest.json');
+    renderDaily(dailyData);
+    document.getElementById('statusDaily').textContent = '✓ von GitHub geladen';
+    document.getElementById('statusDaily').classList.add('ok');
+    document.getElementById('dropzoneDaily').style.display = 'none';
+  }catch(e){
+    console.log('GitHub Daily-Import fehlgeschlagen:', e);
+    document.getElementById('statusDaily').textContent = 'Fehler beim GitHub-Laden: ' + e.message;
+  }
+
+  try{
+    const actData = await fetchFromGithub(config, 'data/activities_latest.json');
+    renderActivities(actData);
+    document.getElementById('statusActivities').textContent = '✓ von GitHub geladen';
+    document.getElementById('statusActivities').classList.add('ok');
+    document.getElementById('dropzoneActivities').style.display = 'none';
+  }catch(e){
+    console.log('GitHub Activities-Import fehlgeschlagen:', e);
+    document.getElementById('statusActivities').textContent = 'Fehler beim GitHub-Laden: ' + e.message;
+  }
+}
+
+function submitGithubSetup(){
+  const owner = document.getElementById('githubOwner').value.trim();
+  const repo = document.getElementById('githubRepo').value.trim();
+  const token = document.getElementById('githubToken').value.trim();
+
+  if(!owner || !repo || !token){
+    document.getElementById('githubSetupError').textContent = 'Bitte alle drei Felder ausfüllen.';
+    return;
+  }
+
+  saveGithubConfig({ owner, repo, token });
+  document.getElementById('sectionGithubSetup').style.display = 'none';
+  loadFromGithubOrPrompt();
+}
+
+function resetGithubSetup(){
+  localStorage.removeItem(GITHUB_CONFIG_KEY);
+  showGithubSetupForm();
+}
+
+// ---------- Einstellungen: Zeitzone ----------
+const TIMEZONE_STORAGE_KEY = 'garmin_dashboard_timezone';
+
+// Kompakte Auswahl gängiger Zeitzonen statt aller ~400 IANA-Namen, damit die
+// Liste übersichtlich bleibt. "Automatisch" nutzt die Zeitzone des Geräts/Browsers.
+const TIMEZONE_OPTIONS = [
+  { value: 'auto', label: 'Automatisch (Geräte-Zeitzone)' },
+  { value: 'Europe/Berlin', label: 'Mitteleuropa (Berlin, Wien, Zürich)' },
+  { value: 'Europe/London', label: 'Großbritannien (London)' },
+  { value: 'Europe/Moscow', label: 'Moskau' },
+  { value: 'America/New_York', label: 'US-Ostküste (New York)' },
+  { value: 'America/Chicago', label: 'US-Zentral (Chicago)' },
+  { value: 'America/Denver', label: 'US-Mountain (Denver)' },
+  { value: 'America/Los_Angeles', label: 'US-Westküste (Los Angeles)' },
+  { value: 'Asia/Dubai', label: 'Dubai' },
+  { value: 'Asia/Kolkata', label: 'Indien (Kolkata)' },
+  { value: 'Asia/Shanghai', label: 'China (Shanghai)' },
+  { value: 'Asia/Tokyo', label: 'Japan (Tokio)' },
+  { value: 'Australia/Sydney', label: 'Australien (Sydney)' },
+  { value: 'Pacific/Auckland', label: 'Neuseeland (Auckland)' },
+];
+
+function getUserTimezone(){
+  const stored = localStorage.getItem(TIMEZONE_STORAGE_KEY);
+  if(!stored || stored === 'auto') return undefined; // undefined -> Intl nutzt automatisch die Geräte-Zeitzone
+  return stored;
+}
+
+function setUserTimezone(value){
+  localStorage.setItem(TIMEZONE_STORAGE_KEY, value);
+  // Anzeige sofort aktualisieren, falls schon Daten geladen sind
+  const config = getGithubConfig();
+  if(config) loadFromGithubOrPrompt();
+}
+
+function initTimezoneSelect(){
+  const select = document.getElementById('timezoneSelect');
+  if(!select) return;
+  const stored = localStorage.getItem(TIMEZONE_STORAGE_KEY) || 'auto';
+  select.innerHTML = TIMEZONE_OPTIONS.map(tz =>
+    '<option value="'+tz.value+'"'+(tz.value===stored?' selected':'')+'>'+tz.label+'</option>'
+  ).join('');
+}
+
+function updateSettingsGithubInfo(){
+  const el = document.getElementById('settingsGithubRepo');
+  if(!el) return;
+  const config = getGithubConfig();
+  el.textContent = config ? (config.owner+'/'+config.repo) : 'Nicht verbunden';
+}
+
+function openSettingsModal(){
+  initTimezoneSelect();
+  updateSettingsGithubInfo();
+  document.getElementById('settingsModalOverlay').classList.add('active');
+}
+function closeSettingsModal(){
+  document.getElementById('settingsModalOverlay').classList.remove('active');
+}
+function closeSettingsModalOnOverlay(event){
+  if(event.target.id === 'settingsModalOverlay') closeSettingsModal();
+}
+
+setupDropzone('dropzoneDaily', 'fileDaily', 'statusDaily', renderDaily);
+setupDropzone('dropzoneActivities', 'fileActivities', 'statusActivities', renderActivities);
+setupJsxDropzone();
+tryRestoreTrainingsplan().then(() => restoreDayOverrides().then(() => { if(trainingsplanData) renderCalendarMonth(); }));
+initTimezoneSelect();
+updateSettingsGithubInfo();
+loadFromGithubOrPrompt();
+</script>
+</body>
+</html>
